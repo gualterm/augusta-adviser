@@ -57,6 +57,11 @@ body{font-family:'Montserrat',sans-serif;background:#faf8f5;color:#555;}
 <div>
 <div class="time">{{ \Illuminate\Support\Carbon::parse($appointment->appointment_date)->format('d/m/Y') }} às {{ \Illuminate\Support\Carbon::parse($appointment->appointment_time)->format('H:i') }}</div>
 <div class="meta">{{ $appointment->service?->name }} · {{ $appointment->employee?->name }}</div>
+@if($appointment->price && $appointment->price < ($appointment->service?->price ?? PHP_INT_MAX))
+<div class="meta" style="margin-top:4px;"><del style="color:#bbb;">€ {{ number_format($appointment->service->price,2,",",".") }}</del> <strong style="color:#5a8a52;">€ {{ number_format($appointment->price,2,",",".") }}</strong> <span style="font-size:11px;color:#9b8a7c;">(promoção)</span></div>
+@elseif($appointment->price)
+<div class="meta" style="margin-top:4px;">€ {{ number_format($appointment->price,2,",",".") }}</div>
+@endif
 </div>
 </div>
 @empty
