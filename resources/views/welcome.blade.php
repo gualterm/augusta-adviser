@@ -638,6 +638,12 @@ acompanhamento personalizado.
 </div>
 </div>
 </section>
+<div style="text-align:center;padding:1.2rem 1rem;background:#ede8e1;border-top:1px solid #d9d0c5;border-bottom:1px solid #d9d0c5;">
+    <span style="font-family:Georgia,serif;font-size:.88rem;color:#7a6152;letter-spacing:.3px;">
+        🎁 @if(auth()->check()) <a href="/portal/promotions" style="color:#5a3e2b;text-decoration:none;border-bottom:1px solid #b8a090;">Ver as nossas promoções exclusivas</a> @else <a href="/portal/login" style="color:#5a3e2b;text-decoration:none;border-bottom:1px solid #b8a090;">Clientes registados — descubra as nossas promoções exclusivas</a> @endif
+    </span>
+</div>
+
 <section>
 <div class="container">
 <h2 class="section-title">
@@ -771,6 +777,7 @@ onde cada detalhe foi preparado para o seu bem-estar.
 </div>
 </div>
 </section>
+
 <section class="training-section">
 <div class="container">
 <div class="training-wrapper">
