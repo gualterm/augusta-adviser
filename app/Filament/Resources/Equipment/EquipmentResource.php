@@ -1,0 +1,58 @@
+<?php
+
+namespace App\Filament\Resources\Equipment;
+
+use App\Filament\Resources\Equipment\Pages\CreateEquipment;
+use App\Filament\Resources\Equipment\Pages\EditEquipment;
+use App\Filament\Resources\Equipment\Pages\ListEquipment;
+use App\Filament\Resources\Equipment\Schemas\EquipmentForm;
+use App\Filament\Resources\Equipment\Tables\EquipmentTable;
+use App\Models\Equipment as EquipmentModel;
+use BackedEnum;
+use Filament\Resources\Resource;
+use App\Filament\Traits\HasRolePermissions;
+use Filament\Schemas\Schema;
+use Filament\Support\Icons\Heroicon;
+use Filament\Tables\Table;
+
+class EquipmentResource extends Resource
+{
+    use HasRolePermissions;
+    protected static ?string $model = EquipmentModel::class;
+
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedCpuChip;
+
+    protected static ?string $navigationLabel = 'Equipamentos';
+
+    protected static ?string $modelLabel = 'Equipamento';
+
+    protected static ?string $pluralModelLabel = 'Equipamentos';
+
+    protected static ?string $recordTitleAttribute = 'name';
+
+    public static function form(Schema $schema): Schema
+    {
+        return EquipmentForm::configure($schema);
+    }
+
+    public static function table(Table $table): Table
+    {
+        return EquipmentTable::configure($table);
+    }
+
+    public static function getRelations(): array
+    {
+        return [
+            //
+        ];
+    }
+
+    public static function getPages(): array
+    {
+        return [
+            'index' => ListEquipment::route('/'),
+            'create' => CreateEquipment::route('/create'),
+            'edit' => EditEquipment::route('/{record}/edit'),
+        ];
+    }
+}

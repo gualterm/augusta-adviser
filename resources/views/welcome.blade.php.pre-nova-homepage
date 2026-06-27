@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Augusta Adviser | Consultoria de Imagem & Estética</title>
+
+<style>
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+body{
+    font-family:Arial,Helvetica,sans-serif;
+    background:#faf8f5;
+    color:#555;
+    line-height:1.6;
+}
+
+.container{
+    max-width:1200px;
+    margin:auto;
+    padding:0 20px;
+}
+
+header{
+    background:#f4e2d8;
+    padding:60px 0;
+}
+
+.hero{
+    display:flex;
+    align-items:center;
+    gap:50px;
+}
+
+.hero-left,
+.hero-right{
+    flex:1;
+}
+
+.hero-image{
+    width:100%;
+    border-radius:20px;
+    box-shadow:0 10px 30px rgba(0,0,0,.15);
+}
+
+.logo{
+    width:280px;
+    max-width:100%;
+    display:block;
+    margin-bottom:25px;
+}
+
+h1{
+    font-size:56px;
+    color:#7a6b5d;
+    margin-bottom:10px;
+}
+
+.subtitle{
+    font-size:28px;
+    margin-bottom:10px;
+}
+
+.slogan{
+    margin-top:20px;
+    font-style:italic;
+}
+
+.btn{
+    display:inline-block;
+    margin-top:30px;
+    background:#7a6b5d;
+    color:#fff;
+    text-decoration:none;
+    padding:14px 28px;
+    border-radius:10px;
+}
+
+section{
+    padding:70px 0;
+}
+
+h2{
+    color:#7a6b5d;
+    margin-bottom:25px;
+    font-size:38px;
+}
+
+.grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+    gap:25px;
+}
+
+.card{
+    background:white;
+    border-radius:15px;
+    overflow:hidden;
+    box-shadow:0 5px 20px rgba(0,0,0,.08);
+}
+
+.card img{
+    width:100%;
+    height:260px;
+    object-fit:cover;
+}
+
+.card-content{
+    padding:20px;
+}
+
+.gallery{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(300px,1fr));
+    gap:25px;
+}
+
+.gallery img{
+    width:100%;
+    height:320px;
+    object-fit:cover;
+    border-radius:15px;
+    box-shadow:0 5px 20px rgba(0,0,0,.08);
+}
+
+.about{
+    display:flex;
+    gap:40px;
+    align-items:center;
+}
+
+.about img{
+    width:380px;
+    max-width:100%;
+    border-radius:20px;
+}
+
+.about-text{
+    flex:1;
+}
+
+.contact{
+    background:#dfe7de;
+    text-align:center;
+    border-radius:20px;
+    padding:50px;
+}
+
+footer{
+    background:#f4e2d8;
+    text-align:center;
+    padding:30px;
+    margin-top:50px;
+}
+
+@media(max-width:900px){
+
+    .hero{
+        flex-direction:column;
+    }
+
+    .about{
+        flex-direction:column;
+    }
+
+    h1{
+        font-size:40px;
+    }
+
+    .subtitle{
+        font-size:22px;
+    }
+}
+
+</style>
+</head>
+
+<body>
+
+<header>
+
+<div class="container">
+
+<div class="hero">
+
+<div class="hero-left">
+
+<img src="/images/Martaadviser.png" class="hero-image">
+
+</div>
+
+<div class="hero-right">
+
+<img src="/images/logo-augusta.png" class="logo">
+
+<h1>AUGUSTA ADVISER</h1>
+
+<div class="subtitle">
+Consultoria de Imagem & Estética
+</div>
+
+<p>
+Rosto • Corpo • Beleza Personalizada
+</p>
+
+<div class="slogan">
+Evoluímos todos os dias para cuidar melhor de si.
+</div>
+
+<a href="/admin" class="btn">
+Área de Administração
+</a>
+
+</div>
+
+</div>
+
+</div>
+
+</header>
+
+<section>
+
+<div class="container">
+
+<h2>Consultoria de Imagem</h2>
+
+<p>
+A Augusta Adviser combina consultoria de imagem, estética e bem-estar,
+ajudando cada cliente a valorizar a sua imagem, autoestima e confiança através
+de um acompanhamento personalizado.
+</p>
+
+</div>
+
+</section>
+
+<section>
+
+<div class="container">
+
+<h2>Serviços</h2>
+
+<div class="grid">
+
+<div class="card">
+<img src="/images/Martaesteticaimagem.png">
+<div class="card-content">
+<h3>Consultoria de Imagem</h3>
+<p>Análise de imagem, estilo pessoal e valorização da identidade.</p>
+</div>
+</div>
+
+<div class="card">
+<img src="/images/Martaesteticaeimagem2.png">
+<div class="card-content">
+<h3>Imagem & Estética</h3>
+<p>Acompanhamento personalizado focado na imagem global.</p>
+</div>
+</div>
+
+<div class="card">
+<img src="/images/bemestar.png">
+<div class="card-content">
+<h3>Bem-estar</h3>
+<p>Protocolos de relaxamento, recuperação e equilíbrio corporal.</p>
+</div>
+</div>
+
+<div class="card">
+<img src="/images/pedicure.png">
+<div class="card-content">
+<h3>Pedicure</h3>
+<p>Cuidado e valorização da imagem pessoal.</p>
+</div>
+</div>
+
+<div class="card">
+<img src="/images/Martaunhas.png">
+<div class="card-content">
+<h3>Manicure</h3>
+<p>Serviços especializados de unhas e estética das mãos.</p>
+</div>
+</div>
+
+<div class="card">
+<img src="/images/unhasjaponesa.png">
+<div class="card-content">
+<h3>Unhas Japonesas</h3>
+<p>Tratamentos de beleza e fortalecimento natural.</p>
+</div>
+</div>
+
+</div>
+
+</div>
+
+</section>
+
+<section>
+
+<div class="container">
+
+<h2>Instalações & Ambiente</h2>
+
+<div class="gallery">
+
+<img src="/images/martaeinstalacoesFilme.jpeg">
+
+<img src="/images/martaeequipa.png">
+
+<img src="/images/Marta.png">
+
+</div>
+
+</div>
+
+</section>
+
+<section>
+
+<div class="container">
+
+<div class="about">
+
+<img src="/images/Marta.png">
+
+<div class="about-text">
+
+<h2>Sobre Marta Macedo</h2>
+
+<p>
+Marta Macedo dedica-se à consultoria de imagem e estética,
+procurando proporcionar um acompanhamento próximo,
+personalizado e focado na valorização de cada cliente.
+</p>
+
+<br>
+
+<p>
+Acredita que a imagem é uma poderosa ferramenta de confiança,
+bem-estar e realização pessoal, desenvolvendo um trabalho
+centrado na pessoa e nas suas necessidades.
+</p>
+
+</div>
+
+</div>
+
+</div>
+
+</section>
+
+<section>
+
+<div class="container">
+
+<div class="contact">
+
+<h2>Contactos</h2>
+
+<p>
+<strong>Telefone:</strong>
++351 966 518 238
+</p>
+
+<br>
+
+<p>
+Augusta Adviser<br>
+Consultoria de Imagem & Estética
+</p>
+
+</div>
+
+</div>
+
+</section>
+
+<footer>
+
+© 2026 Augusta Adviser
+
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,31 @@
+<?php
+use App\Http\Controllers\InquiryController;
+use App\Http\Controllers\Portal\ClientAuthController;
+use App\Http\Controllers\Portal\ClientPortalController;
+use Illuminate\Support\Facades\Route;
+
+Route::get('/', function () {
+    return view('welcome');
+});
+
+Route::get('/staff', function () {
+    return view('staff');
+})->name('staff');
+
+Route::post('/contacto/inquerito', [InquiryController::class, 'store'])->name('inquiry.store');
+
+Route::prefix('portal')->name('portal.')->group(function () {
+    Route::get('/registo', [ClientAuthController::class, 'showRegister'])->name('register');
+    Route::post('/registo', [ClientAuthController::class, 'register']);
+    Route::get('/login', [ClientAuthController::class, 'showLogin'])->name('login');
+    Route::post('/login', [ClientAuthController::class, 'login']);
+    Route::post('/logout', [ClientAuthController::class, 'logout'])->name('logout');
+
+    Route::middleware('auth:client')->group(function () {
+        Route::get('/', [ClientPortalController::class, 'dashboard'])->name('dashboard');
+        Route::get('/marcar', [ClientPortalController::class, 'showBook'])->name('book');
+        Route::post('/marcar', [ClientPortalController::class, 'book'])->name('book.store');
+        Route::get('/suggest-slot', [ClientPortalController::class, 'suggestSlot'])->name('suggest-slot');
+        Route::get('/available-slots', [ClientPortalController::class, 'availableSlots'])->name('available-slots');
+    });
+});
