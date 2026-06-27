@@ -5,6 +5,7 @@ use App\Models\Employee;
 use App\Models\EmployeeCommission;
 use App\Models\Service;
 use App\Models\Appointment;
+use App\Models\Promotion;
 use App\Services\AppointmentConflictService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -30,14 +31,17 @@ class ClientPortalController extends Controller
             ->orderByDesc('appointment_time')
             ->limit(20)
             ->get();
+        $promotions = Promotion::active()->orderBy('valid_to')->get();
+
         return view('portal.dashboard', [
             'client'       => $client,
             'appointments' => $appointments,
             'history'      => $history,
+            'promotions'   => $promotions,
         ]);
     }
 
-    public function showBook()
+    public function showBook(Request $request)
     {
         $services = Service::query()
             ->where('active', true)
@@ -45,7 +49,60 @@ class ClientPortalController extends Controller
             ->orderBy('name')
             ->get()
             ->groupBy('category');
-        return view('portal.book', ['services' => $services]);
+
+        $promo     = null;
+        $promoSlot = null;
+
+        if ($request->filled('promo_id')) {
+            $promo = Promotion::active()->find($request->promo_id);
+            if ($promo?->service_id) {
+                $promoSlot = $this->findFirstSlotForPromo($promo);
+            }
+        }
+
+        return view('portal.book', [
+            'services'  => $services,
+            'promo'     => $promo,
+            'promoSlot' => $promoSlot,
+        ]);
+    }
+
+    private function findFirstSlotForPromo(Promotion $promo): ?array
+    {
+        $service = Service::find($promo->service_id);
+        if (!$service) return null;
+
+        $start    = Carbon::today()->max(Carbon::parse($promo->valid_from));
+        $end      = Carbon::parse($promo->valid_to)->endOfDay();
+        $duration = $service->duration_minutes;
+        $now      = Carbon::now()->addMinutes(30);
+
+        $eligibleIds  = EmployeeCommission::where('category', $service->category)->pluck('employee_id');
+        $employees    = Employee::where('active', true)
+            ->when($eligibleIds->isNotEmpty(), fn($q) => $q->whereIn('id', $eligibleIds))
+            ->get();
+        $equipmentIds = $service->equipment->pluck('id')->all();
+
+        for ($date = $start->copy(); $date->lte($end); $date->addDay()) {
+            $dateStr = $date->format('Y-m-d');
+            $cursor  = Carbon::createFromFormat('Y-m-d H:i', "$dateStr 09:00");
+            $limit   = Carbon::createFromFormat('Y-m-d H:i', "$dateStr 19:30");
+            while ($cursor->copy()->addMinutes($duration)->lte($limit)) {
+                if ($cursor->gte($now)) {
+                    $s = $cursor->format('H:i');
+                    $e = $cursor->copy()->addMinutes($duration)->format('H:i');
+                    foreach ($employees as $emp) {
+                        if (AppointmentConflictService::employeeHasConflict($emp->id, $dateStr, $s, $e)) continue;
+                        if (!empty($equipmentIds) && AppointmentConflictService::equipmentHasConflict($equipmentIds, $dateStr, $s, $e)) continue;
+                        $ws = AppointmentConflictService::findAlternativeWorkstation($service->workstation_type, $dateStr, $s, $e);
+                        if (!$ws) continue;
+                        return ['date' => $dateStr, 'time' => $s];
+                    }
+                }
+                $cursor->addMinutes(30);
+            }
+        }
+        return null;
     }
 
     /**
@@ -196,7 +253,16 @@ class ClientPortalController extends Controller
                 'appointment_time' => $startTime,
                 'end_time'         => $endTime,
                 'status'           => 'scheduled',
-                'price'            => $service->price,
+                'price'            => (function() use ($request, $service) {
+                    $price = $service->price;
+                    if ($request->filled('promo_id')) {
+                        $pr = Promotion::active()->find($request->promo_id);
+                        if ($pr && $pr->service_id == $service->id) {
+                            $price = round($price * (1 - $pr->discount_percentage / 100), 2);
+                        }
+                    }
+                    return $price;
+                })(),
             ]);
             return redirect()->route('portal.dashboard')->with('booking_success', true);
         }

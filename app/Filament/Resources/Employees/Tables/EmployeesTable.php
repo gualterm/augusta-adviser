@@ -24,7 +24,7 @@ class EmployeesTable {
                 DeleteEmployeeAction::make()->visible(fn($record) => \App\Filament\Resources\Employees\EmployeeResource::canDelete($record)),
             ])
             ->toolbarActions([
-                BulkActionGroup::make([DeleteBulkAction::make()]),
+                BulkActionGroup::make([DeleteBulkAction::make()->visible(fn() => \App\Filament\Resources\Employees\EmployeeResource::canDeleteAny())]),
             ]);
     }
 }

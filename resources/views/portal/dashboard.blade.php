@@ -39,6 +39,18 @@ body{font-family:'Montserrat',sans-serif;background:#faf8f5;color:#555;}
 <div class="success">Marcação efetuada com sucesso! Já a podes ver abaixo.</div>
 @endif
 
+
+@if($promotions->isNotEmpty())
+<div class="section-title">Promoções Exclusivas</div>
+@foreach($promotions as $promo)
+<div class="card" style="background:#fff8f0;border-left:4px solid #cdb9a9;display:block;">
+    <div style="font-weight:700;color:#6f5f54;font-size:15px;margin-bottom:4px;">🎁 {{ $promo->title }}</div>
+    @if($promo->description)<div style="font-size:13px;color:#7a6b5d;margin-bottom:6px;">{{ $promo->description }}</div>@endif
+    <div style="font-size:12px;color:#9b8a7c;margin-bottom:12px;">{{ number_format($promo->discount_percentage,0) }}% desconto · Válida até {{ \Illuminate\Support\Carbon::parse($promo->valid_to)->format("d/m/Y") }}</div>
+    <a href="{{ route('portal.book') }}?promo_id={{ $promo->id }}" class="btn" style="font-size:13px;padding:8px 18px;display:inline-block;">Reservar com desconto</a>
+</div>
+@endforeach
+@endif
 <div class="section-title">Próximas Marcações</div>
 @forelse($appointments as $appointment)
 <div class="card">

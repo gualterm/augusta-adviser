@@ -40,6 +40,17 @@ select:focus,input:focus{outline:none;border-color:#cdb9a9;}
 <body>
 <div class="container">
 <a href="{{ route('portal.dashboard') }}" class="back">&larr; Voltar à minha conta</a>
+@if(isset($promo) && $promo)
+<div style="background:#fff8f0;border:1.5px solid #cdb9a9;border-radius:16px;padding:16px 20px;margin-bottom:20px;">
+    <div style="font-weight:700;color:#6f5f54;font-size:15px;">🎁 {{ $promo->title }}</div>
+    <div style="font-size:13px;color:#7a6b5d;margin-top:4px;">{{ number_format($promo->discount_percentage,0) }}% desconto · Válida até {{ \Carbon\Carbon::parse($promo->valid_to)->format('d/m/Y') }}</div>
+    @if(isset($promoSlot) && $promoSlot)
+    <div style="font-size:13px;color:#5a8a52;margin-top:6px;font-weight:600;">✓ Sugerimos: {{ \Carbon\Carbon::parse($promoSlot['date'])->format('d/m/Y') }} às {{ $promoSlot['time'] }}</div>
+    @else
+    <div style="font-size:13px;color:#b85c5c;margin-top:6px;">Sem horários disponíveis para esta promoção no período válido.</div>
+    @endif
+</div>
+@endif
 <h1>Marcar Consulta</h1>
 
 <!-- Passo 1: escolha -->
@@ -79,6 +90,7 @@ select:focus,input:focus{outline:none;border-color:#cdb9a9;}
     <input type="hidden" name="service_id" id="form_service">
     <input type="hidden" name="appointment_date" id="form_date">
     <input type="hidden" name="appointment_time" id="form_time">
+    @if(isset($promo) && $promo)<input type="hidden" name="promo_id" value="{{ $promo->id }}">@endif
     <button type="submit" class="btn-primary">✓ Confirmar esta marcação</button>
   </form>
   <button class="btn-outline" id="moreBtn" onclick="loadMoreSlots()" style="display:none">Ver mais opções neste dia</button>
@@ -193,6 +205,15 @@ function loadMoreSlots(){
     });
 }
 
+@if(isset($promo) && $promo && isset($promoSlot) && $promoSlot)
+window.addEventListener('DOMContentLoaded', function() {
+    serviceEl.value = '{{ $promo->service_id }}';
+    dateEl.value    = '{{ $promoSlot['date'] }}';
+    timeEl.value    = '{{ $promoSlot['time'] }}';
+    updateBtn();
+    setTimeout(checkSlot, 300);
+});
+@endif
 function resetForm(){
   suggestion.style.display = 'none';
   document.getElementById('more-slots').style.display = 'none';
