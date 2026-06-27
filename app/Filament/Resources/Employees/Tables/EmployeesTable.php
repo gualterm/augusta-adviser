@@ -20,8 +20,8 @@ class EmployeesTable {
             ])
             ->filters([])
             ->recordActions([
-                EditAction::make(),
-                DeleteEmployeeAction::make(),
+                EditAction::make()->visible(fn($record) => \App\Filament\Resources\Employees\EmployeeResource::canEdit($record)),
+                DeleteEmployeeAction::make()->visible(fn($record) => \App\Filament\Resources\Employees\EmployeeResource::canDelete($record)),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([DeleteBulkAction::make()]),

@@ -12,6 +12,6 @@ class ListPromotions extends ListRecords
 
     protected function getHeaderActions(): array
     {
-        return [CreateAction::make()];
+        return [CreateAction::make()->visible(fn() => static::getResource()::canCreate())];
     }
 }

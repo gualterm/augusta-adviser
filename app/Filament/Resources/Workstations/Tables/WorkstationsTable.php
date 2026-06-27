@@ -40,11 +40,11 @@ class WorkstationsTable
                 //
             ])
             ->recordActions([
-                EditAction::make(),
+                EditAction::make()->visible(fn($record) => \App\Filament\Resources\Workstations\WorkstationResource::canEdit($record)),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
-                    DeleteBulkAction::make(),
+                    DeleteBulkAction::make()->visible(fn() => \App\Filament\Resources\Workstations\WorkstationResource::canDeleteAny()),
                 ]),
             ]);
     }

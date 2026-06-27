@@ -68,11 +68,11 @@ class AppointmentsTable
                     ]),
             ])
             ->recordActions([
-                EditAction::make(),
+                EditAction::make()->visible(fn($record) => \App\Filament\Resources\Appointments\AppointmentResource::canEdit($record)),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
-                    DeleteBulkAction::make(),
+                    DeleteBulkAction::make()->visible(fn() => \App\Filament\Resources\Appointments\AppointmentResource::canDeleteAny()),
                 ]),
             ]);
     }

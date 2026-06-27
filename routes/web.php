@@ -29,3 +29,9 @@ Route::prefix('portal')->name('portal.')->group(function () {
         Route::get('/available-slots', [ClientPortalController::class, 'availableSlots'])->name('available-slots');
     });
 });
+
+Route::get('/admin/ambiente', function () {
+    if (!auth()->check()) return redirect('/admin/login');
+    if (auth()->user()->role !== 'admin') return redirect('/admin');
+    return view('admin.ambiente');
+});

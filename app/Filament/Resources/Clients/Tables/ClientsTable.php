@@ -45,11 +45,11 @@ class ClientsTable
                 //
             ])
             ->recordActions([
-                EditAction::make(),
+                EditAction::make()->visible(fn($record) => \App\Filament\Resources\Clients\ClientResource::canEdit($record)),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
-                    DeleteBulkAction::make(),
+                    DeleteBulkAction::make()->visible(fn() => \App\Filament\Resources\Clients\ClientResource::canDeleteAny()),
                 ]),
             ]);
     }

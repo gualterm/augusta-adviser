@@ -18,6 +18,15 @@ use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 class AdminPanelProvider extends PanelProvider
 {
+    public function register(): void
+    {
+        parent::register();
+        $this->app->singleton(
+            \Filament\Auth\Http\Responses\Contracts\LoginResponse::class,
+            \App\Filament\Auth\Responses\LoginResponse::class,
+        );
+    }
+
     public function panel(Panel $panel): Panel
     {
         return $panel
@@ -46,14 +55,17 @@ class AdminPanelProvider extends PanelProvider
                 DispatchServingFilamentEvent::class,
             ])
             ->authMiddleware([Authenticate::class])
-            // Barra PRODUÇÃO
+            // Barra ambiente (dinâmica por APP_URL)
             ->renderHook(
                 'panels::body.start',
-                fn () => new \Illuminate\Support\HtmlString('
-                    <div style="background:#2d6a4f;color:#fff;text-align:center;padding:5px 0;
-                        font-size:12px;font-weight:600;letter-spacing:2px;text-transform:uppercase;
-                        opacity:0.85;">✦ PRODUÇÃO ✦</div>
-                ')
+                function () {
+                    $isProd = str_contains(config('app.url'), 'augustaadviser.pt');
+                    $text = $isProd ? '✦ PRODUÇÃO ✦' : '✦ FORMAÇÃO ✦';
+                    $color = $isProd ? '#2d6a4f' : '#9b1c1c';
+                    return new \Illuminate\Support\HtmlString(
+                        '<div style="background:' . $color . ';color:#fff;text-align:center;padding:5px 0;font-size:12px;font-weight:600;letter-spacing:2px;text-transform:uppercase;opacity:0.85;">' . $text . '</div>'
+                    );
+                }
             )
             // Nome do utilizador ao lado do logo
             ->renderHook(

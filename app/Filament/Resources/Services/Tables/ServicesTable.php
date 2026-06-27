@@ -49,11 +49,11 @@ class ServicesTable
                 //
             ])
             ->recordActions([
-                EditAction::make(),
+                EditAction::make()->visible(fn($record) => \App\Filament\Resources\Services\ServiceResource::canEdit($record)),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
-                    DeleteBulkAction::make(),
+                    DeleteBulkAction::make()->visible(fn() => \App\Filament\Resources\Services\ServiceResource::canDeleteAny()),
                 ]),
             ]);
     }
