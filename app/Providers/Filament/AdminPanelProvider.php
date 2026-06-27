@@ -1,24 +1,21 @@
 <?php
-
 namespace App\Providers\Filament;
-
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
-use Filament\Pages;
+use Filament\Pages\Dashboard;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
-use Filament\View\PanelsRenderHook;
+use Filament\Widgets\AccountWidget;
+use Filament\Widgets\FilamentInfoWidget;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
-use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
+use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
-use Illuminate\Support\Facades\Blade;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
-
 class AdminPanelProvider extends PanelProvider
 {
     public function panel(Panel $panel): Panel
@@ -27,49 +24,66 @@ class AdminPanelProvider extends PanelProvider
             ->default()
             ->id('admin')
             ->path('admin')
-            ->login()
-            ->colors([
-                'primary' => Color::Blue,
-            ])
-            ->renderHook(
-                PanelsRenderHook::BODY_START,
-                fn (): string => Blade::render('
-                    <div style="
-                        background: #dc2626;
-                        color: white;
-                        text-align: center;
-                        padding: 8px 16px;
-                        font-weight: 700;
-                        font-size: 14px;
-                        letter-spacing: 0.05em;
-                        position: sticky;
-                        top: 0;
-                        z-index: 9999;
-                    ">
-                        ⚠️ AMBIENTE DE FORMAÇÃO — NÃO É PRODUÇÃO ⚠️
-                    </div>
-                '),
-            )
-            ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
-            ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
-            ->pages([
-                Pages\Dashboard::class,
-            ])
-            ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
-            ->widgets([])
+            ->login(\App\Filament\Pages\Auth\Login::class)
+            ->brandName('Augusta Adviser')
+            ->brandLogo(asset('images/logoaugusta-1a.png'))
+            ->brandLogoHeight('7rem')
+            ->colors(['primary' => Color::Amber])
+            ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
+            ->discoverPages(in: app_path('Filament/Pages'), for: 'App\Filament\Pages')
+            ->pages([Dashboard::class])
+            ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\Filament\Widgets')
+            ->widgets([AccountWidget::class, FilamentInfoWidget::class])
             ->middleware([
                 EncryptCookies::class,
                 AddQueuedCookiesToResponse::class,
                 StartSession::class,
                 AuthenticateSession::class,
                 ShareErrorsFromSession::class,
-                VerifyCsrfToken::class,
+                PreventRequestForgery::class,
                 SubstituteBindings::class,
                 DisableBladeIconComponents::class,
                 DispatchServingFilamentEvent::class,
             ])
-            ->authMiddleware([
-                Authenticate::class,
-            ]);
+            ->authMiddleware([Authenticate::class])
+            // Barra PRODUÇÃO
+            ->renderHook(
+                'panels::body.start',
+                fn () => new \Illuminate\Support\HtmlString('
+                    <div style="background:#2d6a4f;color:#fff;text-align:center;padding:5px 0;
+                        font-size:12px;font-weight:600;letter-spacing:2px;text-transform:uppercase;
+                        opacity:0.85;">✦ PRODUÇÃO ✦</div>
+                ')
+            )
+            // Nome do utilizador ao lado do logo
+            ->renderHook(
+                'panels::sidebar.header',
+                fn () => auth()->check()
+                    ? new \Illuminate\Support\HtmlString(
+                        '<div style="
+                            display:flex;align-items:center;gap:8px;
+                            padding:6px 16px 10px;
+                            border-bottom:1px solid rgba(0,0,0,0.07);
+                            margin-bottom:4px;
+                        ">
+                            <div style="
+                                width:32px;height:32px;border-radius:50%;
+                                background:#f59e0b;color:#fff;
+                                display:flex;align-items:center;justify-content:center;
+                                font-size:14px;font-weight:700;flex-shrink:0;
+                            ">' . e(mb_strtoupper(mb_substr(auth()->user()->name, 0, 1))) . '</div>
+                            <div style="min-width:0;">
+                                <div style="font-size:13px;font-weight:600;color:#1f2937;
+                                    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'
+                                    . e(auth()->user()->name) .
+                                '</div>
+                                <div style="font-size:11px;color:#6b7280;">'
+                                    . e(auth()->user()->getRoleLabelAttribute()) .
+                                '</div>
+                            </div>
+                        </div>'
+                    )
+                    : ''
+            );
     }
 }
