@@ -35,7 +35,7 @@ button:hover{opacity:.92;}
 <label for="password">Password</label>
 <input type="password" id="password" name="password" required>
 
-<button type="submit">Entrar</button>
+<button type="submit">Entrar</button><div style="text-align:center;margin-top:14px;"><a href="{{ route('portal.forgot-password') }}" style="font-size:13px;color:#9b8a7c;text-decoration:none;">Esqueci a minha password</a></div>
 </form>
 
 <div class="foot">Ainda não tens conta? <a href="{{ route('portal.register') }}">Criar Conta</a></div>

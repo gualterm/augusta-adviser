@@ -5,6 +5,10 @@ namespace App\Http\Controllers\Portal;
 use App\Http\Controllers\Controller;
 use App\Models\Client;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
@@ -69,4 +73,73 @@ class ClientAuthController extends Controller
 
         return redirect()->route('portal.login');
     }
+
+    public function showForgot()
+    {
+        return view('portal.forgot-password');
+    }
+
+    public function sendResetLink(Request $request)
+    {
+        $request->validate(['email' => 'required|email']);
+
+        $client = \App\Models\Client::where('email', $request->email)->first();
+
+        if ($client) {
+            $token = Str::random(64);
+            DB::table('password_reset_tokens')->updateOrInsert(
+                ['email' => $request->email],
+                ['token' => Hash::make($token), 'created_at' => now()]
+            );
+            $url = url('/portal/reset-password/' . $token . '?email=' . urlencode($request->email));
+            Mail::send([], [], function($mail) use ($request, $url) {
+                $mail->to($request->email)
+                     ->subject('Recuperação de Password — Augusta Adviser')
+                     ->html('<div style="font-family:sans-serif;max-width:500px;margin:auto;">
+                        <h2 style="color:#6f5f54;">Augusta Adviser</h2>
+                        <p>Recebemos um pedido de recuperação de password.</p>
+                        <p><a href="' . $url . '" style="display:inline-block;padding:12px 24px;background:#7a6b5d;color:#fff;text-decoration:none;border-radius:30px;">Redefinir Password</a></p>
+                        <p style="color:#9b8a7c;font-size:13px;">Este link expira em 60 minutos. Se não solicitaste, ignora este email.</p>
+                     </div>');
+            });
+        }
+
+        return back()->with('status', 'Se o email existir na nossa base de dados, receberás um link de recuperação em breve.');
+    }
+
+    public function showReset(Request $request, $token)
+    {
+        return view('portal.reset-password', ['token' => $token, 'email' => $request->email]);
+    }
+
+    public function processReset(Request $request)
+    {
+        $request->validate([
+            'token'                 => 'required',
+            'email'                 => 'required|email',
+            'password'              => 'required|min:8|confirmed',
+        ]);
+
+        $record = DB::table('password_reset_tokens')->where('email', $request->email)->first();
+
+        if (!$record || !Hash::check($request->token, $record->token)) {
+            return back()->withErrors(['email' => 'Link inválido ou expirado.']);
+        }
+
+        if (now()->diffInMinutes($record->created_at) > 60) {
+            DB::table('password_reset_tokens')->where('email', $request->email)->delete();
+            return back()->withErrors(['email' => 'O link expirou. Por favor solicita um novo.']);
+        }
+
+        $client = \App\Models\Client::where('email', $request->email)->first();
+        if (!$client) {
+            return back()->withErrors(['email' => 'Email não encontrado.']);
+        }
+
+        $client->update(['password' => Hash::make($request->password)]);
+        DB::table('password_reset_tokens')->where('email', $request->email)->delete();
+
+        return redirect()->route('portal.login')->with('status', 'Password alterada com sucesso. Podes fazer login.');
+    }
+
 }
