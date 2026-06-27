@@ -56,9 +56,9 @@ font-size:12px;
 }
 }
 .container{
-max-width:1400px;
+max-width:1100px;
 margin:auto;
-padding:0 40px;
+padding:0 32px;
 }
 h1,h2,h3{
 font-family:'Cormorant Garamond',serif;
@@ -66,7 +66,7 @@ font-weight:600;
 color:#6f5f54;
 }
 section{
-padding:38px 0;
+padding:22px 0;
 }
 .section-alt{
 background:#f6f0eb;
@@ -92,88 +92,76 @@ font-weight:600;
 .hero{
 background:#f8f4f0;
 padding:20px 0 0;
-overflow:hidden;
 }
 .hero-grid{
 display:grid;
-grid-template-columns:42% 58%;
+grid-template-columns:38% 62%;
 align-items:center;
-gap:40px;
-min-height:460px;
+gap:20px;
 }
 .hero-image{
 position:relative;
-height:460px;
-border-radius:0 0 30px 0;
-overflow:hidden;
+height:360px;
 }
 .hero-image img{
 width:100%;
 height:100%;
-object-fit:cover;
-object-position:center 25%;
+object-fit:contain;
+object-position:top center;
+display:block;
 }
-.hero-image:before{
+.hero-image::before{
 content:'';
 position:absolute;
-top:0;
-right:0;
-width:45%;
-height:100%;
-background:linear-gradient(to right,
-rgba(248,244,240,0) 0%,
-rgba(248,244,240,.55) 60%,
-rgba(248,244,240,1) 100%);
-z-index:2;
-}
-.hero-image:after{
-content:'';
-position:absolute;
-left:0;
-right:0;
-bottom:0;
-height:90px;
-background:linear-gradient(
-to bottom,
-rgba(248,244,240,0),
-rgba(248,244,240,1)
-);
+inset:0;
+background:
+linear-gradient(to right, #f8f4f0 0%, transparent 18%, transparent 52%, #f8f4f0 88%),
+linear-gradient(to bottom, #f8f4f0 0%, transparent 20%),
+linear-gradient(to top, #f8f4f0 0%, transparent 20%);
+pointer-events:none;
+z-index:1;
 }
 .hero-content{
 max-width:560px;
 margin-left:0;
 }
 .hero-logo{
-width:260px;
-margin-bottom:18px;
+width:346px;
+margin-bottom:14px;
 opacity:.95;
 }
 .hero h1{
-font-size:38px;
+font-size:24px;
 line-height:1.05;
-margin-bottom:12px;
+margin-bottom:8px;
 white-space:nowrap;
 }
 .hero-subtitle{
-font-size:24px;
-margin-bottom:12px;
+font-size:15px;
+margin-bottom:8px;
 color:#7a6b5d;
 }
 .hero-tag{
-font-size:13px;
+font-size:11px;
 letter-spacing:2px;
 text-transform:uppercase;
 color:#9b8a7c;
-margin-bottom:18px;
+margin-bottom:12px;
 }
 .hero-slogan{
-font-size:19px;
+font-size:13px;
 font-style:italic;
-margin-bottom:26px;
+margin-bottom:20px;
 color:#74675c;
 }
+.hero-content .btn{
+width:346px;
+text-align:center;
+padding:12px 20px;
+font-size:14px;
+}
 .section-title{
-font-size:48px;
+font-size:30px;
 text-align:center;
 margin-bottom:10px;
 }
@@ -232,8 +220,9 @@ position:relative;
 }
 .about-photo img{
 width:100%;
-max-height:440px;
+max-height:520px;
 object-fit:cover;
+object-position:center 15%;
 border-radius:25px;
 }
 .about-photo:after{
@@ -250,7 +239,7 @@ rgba(250,248,245,1)
 );
 }
 .about-text h2{
-font-size:46px;
+font-size:37px;
 margin-bottom:20px;
 }
 .about-text p{
@@ -399,17 +388,18 @@ text-align:center;
 margin-top:50px;
 }
 .footer-logo{
-width:200px;
+width:260px;
 margin:0 auto 30px;
-opacity:.55;
+display:block;
+opacity:.9;
 }
 .footer-grid{
 display:grid;
 grid-template-columns:1fr 1fr;
 gap:40px;
-max-width:900px;
+max-width:700px;
 margin:0 auto 30px;
-text-align:left;
+text-align:center;
 }
 .footer-grid h4{
 font-family:'Cormorant Garamond',serif;
@@ -533,17 +523,29 @@ grid-template-columns:repeat(2,1fr);
 .hero-grid{
 grid-template-columns:1fr;
 }
+.hero-image{
+order:2;
+height:320px;
+}
 .hero-image img{
-max-height:300px;
+width:100%;
+height:100%;
+object-fit:contain;
+object-position:top center;
 }
 .hero-content{
+order:1;
 margin:auto;
 text-align:center;
-padding:0 10px;
+padding:16px 10px 0;
 }
 .hero h1{
 font-size:26px;
 white-space:normal;
+}
+.hero-logo{
+width:160px;
+margin:0 auto 12px;
 }
 .about{
 grid-template-columns:1fr;
@@ -587,6 +589,7 @@ text-align:center;
 </head>
 <body>
 <a href="/portal/login" class="login-badge">&#128100; Entrar / Marcar Online</a>
+<a href="/admin" class="login-badge" style="top:62px;font-size:11px;padding:6px 14px;opacity:0.7;">&#9881;&#65039; Admin</a>
 <section class="hero">
 <div class="container">
 <div class="hero-grid">
@@ -599,7 +602,7 @@ onclick="openLightbox(this.src)">
 </div>
 <div class="hero-content">
 <img
-src="/images/logoaugusta2.png"
+src="/images/logoaugusta-1a.png"
 class="hero-logo"
 alt="Augusta Adviser">
 <div class="hero-tag">
@@ -614,7 +617,7 @@ Consultoria de Imagem &amp; Estética
 <div class="hero-slogan">
 Evoluímos todos os dias para cuidar melhor de si.
 </div>
-<a href="https://zappysoftware.com/m/martavianamacedo" target="_blank" class="btn btn-primary">
+<a href="/portal/marcar" class="btn btn-primary">
 Agendar Consulta
 </a>
 </div>
@@ -710,7 +713,7 @@ saúde das unhas.
 <div class="about">
 <div class="about-photo">
 <img
-src="/images/Marta1.png"
+src="/images/Marta3.png"
 alt="Marta Macedo"
 class="zoomable"
 onclick="openLightbox(this.src)">
@@ -961,8 +964,7 @@ Avenida Júlio Saúl Dias nº 191<br>
 </div>
 <div class="contact-actions">
 <a
-href="https://zappysoftware.com/m/martavianamacedo"
-target="_blank"
+href="/portal/marcar"
 class="btn btn-primary">
 Agendar Serviço
 </a>
@@ -1062,7 +1064,7 @@ Enviar Mensagem
 <footer class="footer">
 <div class="container">
 <img
-src="/images/logoaugusta2.png"
+src="/images/logoaugusta-1a.png"
 class="footer-logo"
 alt="Augusta Adviser">
 <div class="footer-grid">
