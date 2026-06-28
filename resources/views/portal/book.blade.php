@@ -90,7 +90,17 @@ select:focus,input:focus{outline:none;border-color:#cdb9a9;}
     <input type="hidden" name="service_id" id="form_service">
     <input type="hidden" name="appointment_date" id="form_date">
     <input type="hidden" name="appointment_time" id="form_time">
+    <input type="hidden" name="employee_id" id="form_employee">
+    <input type="hidden" name="secondary_employee_id" id="form_secondary_employee">
     @if(isset($promo) && $promo)<input type="hidden" name="promo_id" value="{{ $promo->id }}">@endif
+    <div id="employee-select-wrap" style="margin-top:14px;display:none;">
+      <label style="font-size:13px;color:#6f5f54;font-weight:500;display:block;margin-bottom:6px;">1º Terapeuta</label>
+      <select id="employee-select" onchange="document.getElementById('form_employee').value=this.value" style="width:100%;padding:11px 14px;border:1px solid #e0d8d0;border-radius:10px;font-size:14px;background:#faf8f5;"></select>
+    </div>
+    <div id="secondary-employee-select-wrap" style="margin-top:10px;display:none;">
+      <label style="font-size:13px;color:#6f5f54;font-weight:500;display:block;margin-bottom:6px;">2º Terapeuta</label>
+      <select id="secondary-employee-select" onchange="document.getElementById('form_secondary_employee').value=this.value" style="width:100%;padding:11px 14px;border:1px solid #e0d8d0;border-radius:10px;font-size:14px;background:#faf8f5;"></select>
+    </div>
     <button type="submit" class="btn-primary">✓ Confirmar esta marcação</button>
   </form>
   <button class="btn-outline" id="moreBtn" onclick="loadMoreSlots()" style="display:none">Ver mais opções neste dia</button>
@@ -154,7 +164,25 @@ function checkSlot(){
       // Format date nicely
       const [y,m,d] = dateEl.value.split('-');
       const months = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
-      document.getElementById('suggDetail').textContent = `${d} ${months[parseInt(m)-1]} ${y}`;
+      const empName = data.employee_name ? ' · ' + data.employee_name : '';
+      document.getElementById('suggDetail').textContent = `${d} ${months[parseInt(m)-1]} ${y}` + empName;
+      document.getElementById('form_employee').value = data.employee_id || '';
+      var empWrap = document.getElementById('employee-select-wrap');
+      var empSel  = document.getElementById('employee-select');
+      if (data.available_employees && data.available_employees.length > 1) {
+        empSel.innerHTML = data.available_employees.map(function(e){ return '<option value="'+e.id+'"'+(e.id==data.employee_id?' selected':'')+'>'+e.name+'</option>'; }).join('');
+        empWrap.style.display = 'block';
+      } else { empWrap.style.display = 'none'; }
+      // 2º terapeuta (massagem a 4 maos)
+      document.getElementById('form_secondary_employee').value = data.secondary_employee_id || '';
+      var secWrap = document.getElementById('secondary-employee-select-wrap');
+      var secSel  = document.getElementById('secondary-employee-select');
+      if (data.two_employees && data.available_employees && data.available_employees.length >= 2) {
+        var primaryId = data.employee_id;
+        var secOpts = data.available_employees.filter(function(e){ return e.id != primaryId; });
+        secSel.innerHTML = secOpts.map(function(e){ return '<option value="'+e.id+'"'+(e.id==data.secondary_employee_id?' selected':'')+'>'+e.name+'</option>'; }).join('');
+        secWrap.style.display = 'block';
+      } else { secWrap.style.display = 'none'; }
 
       document.getElementById('form_service').value = serviceEl.value;
       document.getElementById('form_date').value    = dateEl.value;

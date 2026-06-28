@@ -1,6 +1,7 @@
 <?php
 namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 class Employee extends Model
@@ -24,6 +25,8 @@ class Employee extends Model
     {
         return $this->hasMany(Appointment::class);
     }
+    public function areas(): BelongsToMany { return $this->belongsToMany(Area::class, "employee_area"); }
+    public function services(): BelongsToMany { return $this->belongsToMany(Service::class, "service_area", "employee_id", "service_id"); }
     public function commissions(): HasMany
     {
         return $this->hasMany(EmployeeCommission::class);

@@ -19,9 +19,9 @@ Route::prefix('portal')->name('portal.')->group(function () {
     Route::post('/registo', [ClientAuthController::class, 'register']);
     Route::get('/login', [ClientAuthController::class, 'showLogin'])->name('login');
     Route::get('/forgot-password', [ClientAuthController::class, 'showForgot'])->name('forgot-password');
-    Route::post('/forgot-password', [ClientAuthController::class, 'sendResetLink'])->name('forgot-password.send');
-    Route::get('/reset-password/{token}', [ClientAuthController::class, 'showReset'])->name('reset-password');
-    Route::post('/reset-password', [ClientAuthController::class, 'processReset'])->name('reset-password.update');
+    Route::post('/forgot-password', [ClientAuthController::class, 'sendResetLink'])->name('password.email');
+    Route::get('/reset-password/{token}', [ClientAuthController::class, 'showReset'])->name('password.reset');
+    Route::post('/reset-password', [ClientAuthController::class, 'processReset'])->name('password.update');
     Route::post('/login', [ClientAuthController::class, 'login']);
     Route::post('/logout', [ClientAuthController::class, 'logout'])->name('logout');
 

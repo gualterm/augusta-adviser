@@ -61,6 +61,11 @@ class ClientAuthController extends Controller
 
         $request->session()->regenerate();
 
+        $client = Auth::guard('client')->user();
+        if (!$client->password_changed_at || $client->password_changed_at->diffInMonths(now()) >= 12) {
+            session()->flash('suggest_password_change', true);
+        }
+
         return redirect()->route('portal.dashboard');
     }
 
@@ -135,7 +140,13 @@ class ClientAuthController extends Controller
             return back()->withErrors(['email' => 'Email não encontrado.']);
         }
 
-        $client->update(['password' => Hash::make($request->password)]);
+        // Bloquear reutilização se mudou há mais de 6 meses
+        if ($client->password_changed_at && $client->password_changed_at->diffInMonths(now()) >= 6) {
+            if (Hash::check($request->password, $client->password)) {
+                return back()->withErrors(['password' => 'Por segurança, escolhe uma password diferente da anterior.'])->withInput();
+            }
+        }
+        $client->update(['password' => Hash::make($request->password), 'password_changed_at' => now()]);
         DB::table('password_reset_tokens')->where('email', $request->email)->delete();
 
         return redirect()->route('portal.login')->with('status', 'Password alterada com sucesso. Podes fazer login.');

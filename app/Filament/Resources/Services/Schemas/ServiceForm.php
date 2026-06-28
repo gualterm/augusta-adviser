@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Services\Schemas;
 
+use App\Models\Area;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -39,6 +40,11 @@ class ServiceForm
                             ->preload()
                             ->searchable()->preload()
                             ->helperText('Seleciona equipamentos partilhados que este serviço usa (ex: Laser, Secador UV). Se um equipamento tiver só 1 unidade, não pode haver 2 marcações desse equipamento ao mesmo tempo, mesmo em salas/postos diferentes.'),
+                        Select::make('areas')
+                            ->label('Áreas que executam este serviço')
+                            ->relationship('areas', 'name')
+                            ->multiple()->preload()
+                            ->helperText('Define quais áreas podem realizar este serviço'),
                         TextInput::make('price')
                             ->label('Preço (€)')
                             ->numeric()
@@ -55,6 +61,9 @@ class ServiceForm
                         Toggle::make('active')
                             ->label('Ativo')
                             ->default(true),
+                        Toggle::make('two_employees')
+                            ->label('Requer 2 Terapeutas (ex: Massagem a 4 Maos)')
+                            ->default(false),
                     ])
                     ->columns(2),
             ]);

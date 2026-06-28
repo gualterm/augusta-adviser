@@ -31,11 +31,16 @@ class AppointmentForm
                             ->searchable()->preload()
                             ->required(),
                         Select::make('employee_id')
-                            ->label('Profissional')
+                            ->label('1º Terapeuta')
                             ->relationship('employee', 'name')
                             ->searchable()->preload()
                             ->live()
                             ->required(),
+                        Select::make('secondary_employee_id')
+                            ->label('2º Terapeuta (opcional)')
+                            ->relationship('secondaryEmployee', 'name')
+                            ->searchable()->preload()
+                            ->nullable(),
                         Select::make('category')
                             ->label('Categoria')
                             ->options(

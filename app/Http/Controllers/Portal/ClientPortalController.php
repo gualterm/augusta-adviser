@@ -67,6 +67,23 @@ class ClientPortalController extends Controller
         ]);
     }
 
+    
+    private function getEmployeesForService($service): \Illuminate\Support\Collection
+    {
+        $areaIds = \Illuminate\Support\Facades\DB::table('service_area')->where('service_id', $service->id)->pluck('area_id');
+        if ($areaIds->isNotEmpty()) {
+            return \App\Models\Employee::where('active', true)
+                ->join('employee_area', 'employees.id', '=', 'employee_area.employee_id')
+                ->whereIn('employee_area.area_id', $areaIds)
+                ->orderBy('employee_area.priority')
+                ->select('employees.*')
+                ->get();
+        }
+        $eligibleIds = \App\Models\EmployeeCommission::where('category', $service->category)->pluck('employee_id');
+        $q = \App\Models\Employee::where('active', true);
+        if ($eligibleIds->isNotEmpty()) $q->whereIn('id', $eligibleIds);
+        return $q->orderBy('name')->get();
+    }
     private function findFirstSlotForPromo(Promotion $promo): ?array
     {
         $service = Service::find($promo->service_id);
@@ -150,11 +167,7 @@ class ClientPortalController extends Controller
             return $diffA <=> $diffB;
         });
 
-        // Encontra employees elegíveis
-        $eligibleIds = EmployeeCommission::where('category', $service->category)->pluck('employee_id');
-        $employeesQ  = Employee::where('active', true);
-        if ($eligibleIds->isNotEmpty()) $employeesQ->whereIn('id', $eligibleIds);
-        $employees    = $employeesQ->get();
+        $employees = $this->getEmployeesForService($service);
         $equipmentIds = $service->equipment->pluck('id')->all();
 
         foreach ($slots as $startTime) {
@@ -166,7 +179,23 @@ class ClientPortalController extends Controller
                 if (!$workstation) continue;
 
                 $exact = ($startTime === $preferred->format('H:i'));
-                return response()->json(['slot' => $startTime, 'exact' => $exact]);
+                // Recolher todos os profissionais disponíveis para este slot
+                $available = $employees->filter(function($emp) use ($date, $startTime, $endTime) {
+                    return !\App\Services\AppointmentConflictService::employeeHasConflict($emp->id, $date, $startTime, $endTime);
+                })->map(fn($e) => ['id' => $e->id, 'name' => $e->name])->values();
+                // Para servicos a 4 maos, precisamos de 2 profissionais livres
+                if ($service->two_employees && $available->count() < 2) continue;
+                $secondary = $service->two_employees ? $available->skip(1)->first() : null;
+                return response()->json([
+                    'slot'                    => $startTime,
+                    'exact'                   => $exact,
+                    'employee_id'             => $employee->id,
+                    'employee_name'           => $employee->name,
+                    'secondary_employee_id'   => $secondary ? $secondary['id'] : null,
+                    'secondary_employee_name' => $secondary ? $secondary['name'] : null,
+                    'available_employees'     => $available,
+                    'two_employees'           => (bool) $service->two_employees,
+                ]);
             }
         }
 
@@ -232,10 +261,13 @@ class ClientPortalController extends Controller
         $startTime = Carbon::parse($data['appointment_time'])->format('H:i');
         $endTime   = Carbon::parse($startTime)->addMinutes($service->duration_minutes)->format('H:i');
 
-        $eligibleIds = EmployeeCommission::where('category', $service->category)->pluck('employee_id');
-        $employeesQ  = Employee::where('active', true);
-        if ($eligibleIds->isNotEmpty()) $employeesQ->whereIn('id', $eligibleIds);
-        $employees    = $employeesQ->orderBy('name')->get();
+        // Usar sistema de áreas (prioridade) para obter profissionais elegíveis
+        $employees = $this->getEmployeesForService($service);
+        // Se o cliente escolheu um profissional específico, coloca-o à frente
+        if ($request->filled('employee_id')) {
+            $preferred = (int) $request->employee_id;
+            $employees = $employees->sortBy(fn($e) => $e->id === $preferred ? 0 : 1)->values();
+        }
         $equipmentIds = $service->equipment->pluck('id')->all();
 
         foreach ($employees as $employee) {
@@ -244,9 +276,24 @@ class ClientPortalController extends Controller
             $workstation = AppointmentConflictService::findAlternativeWorkstation($service->workstation_type, $data['appointment_date'], $startTime, $endTime);
             if (!$workstation) continue;
 
+            // Para serviços a 4 mãos: encontrar 2º terapeuta disponível
+            $secondaryEmployeeId = null;
+            if ($service->two_employees) {
+                $preferredSecondary = $request->filled('secondary_employee_id')
+                    ? (int) $request->secondary_employee_id
+                    : null;
+                $secondaryEmployee = $employees
+                    ->filter(fn($e) => $e->id !== $employee->id
+                        && !AppointmentConflictService::employeeHasConflict($e->id, $data['appointment_date'], $startTime, $endTime))
+                    ->sortBy(fn($e) => $e->id === $preferredSecondary ? 0 : 1)
+                    ->first();
+                if (!$secondaryEmployee) continue; // sem 2º terapeuta, tenta próximo slot
+                $secondaryEmployeeId = $secondaryEmployee->id;
+            }
             Appointment::create([
-                'client_id'        => $client->id,
-                'employee_id'      => $employee->id,
+                'client_id'              => $client->id,
+                'employee_id'            => $employee->id,
+                'secondary_employee_id'  => $secondaryEmployeeId,
                 'workstation_id'   => $workstation->id,
                 'service_id'       => $service->id,
                 'appointment_date' => $data['appointment_date'],

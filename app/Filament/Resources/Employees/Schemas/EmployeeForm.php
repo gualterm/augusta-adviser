@@ -2,6 +2,7 @@
 namespace App\Filament\Resources\Employees\Schemas;
 use App\Models\Employee;
 use App\Models\Service;
+use App\Models\Area;
 use App\Models\User;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
@@ -41,6 +42,11 @@ class EmployeeForm
                                 ->distinct()->orderBy('role')->pluck('role')->toArray()
                         )
                         ->placeholder('Ex: Esteticista, Massagista, Manicure...'),
+                    Select::make('areas')
+                        ->label('Áreas de Atuação')
+                        ->relationship('areas', 'name')
+                        ->multiple()->preload()
+                        ->helperText('Áreas em que este profissional trabalha'),
                     TextInput::make('phone')
                         ->label('Telefone')->tel()->maxLength(50)
                         ->unique(table: Employee::class, column: 'phone', ignorable: fn ($record) => $record)

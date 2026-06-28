@@ -18,7 +18,10 @@ class AppointmentConflictService
         }
         return Appointment::query()
             ->when($ignoreAppointmentId, fn ($q) => $q->where('id', '!=', $ignoreAppointmentId))
-            ->where('employee_id', $employeeId)
+            ->where(function ($q) use ($employeeId) {
+                $q->where('employee_id', $employeeId)
+                  ->orWhere('secondary_employee_id', $employeeId);
+            })
             ->where('appointment_date', $date)
             ->where(function ($query) use ($startTime, $endTime) {
                 $query

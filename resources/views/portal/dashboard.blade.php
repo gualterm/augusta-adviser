@@ -18,12 +18,17 @@ body{font-family:'Montserrat',sans-serif;background:#faf8f5;color:#555;}
 .section-title{font-family:'Cormorant Garamond',serif;color:#6f5f54;font-size:22px;margin:26px 0 12px;}
 .card{background:#fff;border-radius:16px;padding:16px;margin-bottom:10px;box-shadow:0 4px 14px rgba(0,0,0,.04);display:flex;justify-content:space-between;}
 .card .time{font-weight:700;color:#2f2a28;}
-.card .meta{color:#7a6b5d;font-size:13px;margin-top:2px;}
+.card .meta{color:#3d2f25;font-size:13px;margin-top:2px;font-weight:600;}
 .empty{color:#9b8a7c;font-size:14px;padding:14px;}
 </style>
 </head>
 <body>
 <div class="container">
+@if(session('suggest_password_change'))
+<div style='background:#fff3cd;border:1px solid #ffc107;border-radius:8px;padding:12px 16px;margin-bottom:20px;font-size:14px;color:#856404;'>
+    A tua password tem mais de 1 ano. Recomendamos que a <a href="{{ route('portal.forgot-password') }}" style='color:#856404;font-weight:bold;'>alteres por segurança</a>.
+</div>
+@endif
 <div class="topbar">
 <h1>Olá, {{ $client->name }}</h1>
 <div>
@@ -56,7 +61,7 @@ body{font-family:'Montserrat',sans-serif;background:#faf8f5;color:#555;}
 <div class="card">
 <div>
 <div class="time">{{ \Illuminate\Support\Carbon::parse($appointment->appointment_date)->format('d/m/Y') }} às {{ \Illuminate\Support\Carbon::parse($appointment->appointment_time)->format('H:i') }}</div>
-<div class="meta">{{ $appointment->service?->name }} · {{ $appointment->employee?->name }}</div>
+<div class="meta">{{ $appointment->service?->name }} · {{ $appointment->employee?->name }}{{ $appointment->secondaryEmployee ? ' & ' . $appointment->secondaryEmployee->name : '' }}</div>
 @if($appointment->price && $appointment->price < ($appointment->service?->price ?? PHP_INT_MAX))
 <div class="meta" style="margin-top:4px;"><del style="color:#bbb;">€ {{ number_format($appointment->service->price,2,",",".") }}</del> <strong style="color:#5a8a52;">€ {{ number_format($appointment->price,2,",",".") }}</strong> <span style="font-size:11px;color:#9b8a7c;">(promoção)</span></div>
 @elseif($appointment->price)
@@ -73,7 +78,7 @@ body{font-family:'Montserrat',sans-serif;background:#faf8f5;color:#555;}
 <div class="card">
 <div>
 <div class="time">{{ \Illuminate\Support\Carbon::parse($appointment->appointment_date)->format('d/m/Y') }}</div>
-<div class="meta">{{ $appointment->service?->name }} · {{ $appointment->employee?->name }}</div>
+<div class="meta">{{ $appointment->service?->name }} · {{ $appointment->employee?->name }}{{ $appointment->secondaryEmployee ? ' & ' . $appointment->secondaryEmployee->name : '' }}</div>
 </div>
 </div>
 @empty
