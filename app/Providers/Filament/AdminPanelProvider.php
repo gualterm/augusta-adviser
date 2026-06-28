@@ -6,11 +6,18 @@ use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
 use Filament\Pages\Dashboard;
 use Filament\Panel;
+use Filament\View\PanelsRenderHook;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
 use App\Filament\Widgets\AugustaDashboardStats;
 use App\Filament\Widgets\TodayAppointmentsWidget;
 use App\Filament\Widgets\WeeklyByProfessionalWidget;
+use App\Filament\Pages\Analytics;
+use App\Filament\Widgets\AppointmentsByMonthChart;
+use App\Filament\Widgets\ProfessionalHistoryChart;
+use App\Filament\Widgets\RevenueByMonthChart;
+use App\Filament\Widgets\RevenueByWeekChart;
+use App\Filament\Widgets\ServiceBreakdownChart;
 use Filament\Widgets\AccountWidget;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
@@ -42,7 +49,7 @@ class AdminPanelProvider extends PanelProvider
             ->colors(['primary' => Color::Amber])
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\Filament\Pages')
-            ->pages([Dashboard::class])
+            ->pages([Analytics::class, Dashboard::class])
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\Filament\Widgets')
             ->widgets([AccountWidget::class, AugustaDashboardStats::class, TodayAppointmentsWidget::class, WeeklyByProfessionalWidget::class])
             ->middleware([
@@ -56,6 +63,28 @@ class AdminPanelProvider extends PanelProvider
                 DisableBladeIconComponents::class,
                 DispatchServingFilamentEvent::class,
             ])
+            
+            ->renderHook(
+                PanelsRenderHook::HEAD_END,
+                fn () => '<style>
+/* ---- chart hover zoom ---- */
+.fi-wi-chart {
+    transition: transform 0.25s cubic-bezier(.25,.8,.25,1),
+                box-shadow 0.25s cubic-bezier(.25,.8,.25,1);
+    border-radius: 12px;
+}
+.fi-wi-chart:hover {
+    transform: scale(1.04);
+    box-shadow: 0 16px 48px rgba(0,0,0,0.18);
+    z-index: 20;
+    position: relative;
+}
+/* dashboard grid: forçar 2 colunas nos charts */
+.fi-dashboard-widgets-container {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+}
+</style>'
+            )
             ->authMiddleware([Authenticate::class])
             // Barra ambiente (dinâmica por APP_URL)
             ->renderHook(

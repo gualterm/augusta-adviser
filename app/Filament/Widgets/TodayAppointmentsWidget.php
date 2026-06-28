@@ -3,6 +3,7 @@
 namespace App\Filament\Widgets;
 
 use App\Models\Appointment;
+use App\Models\Employee;
 use Carbon\Carbon;
 use Filament\Tables;
 use Filament\Tables\Table;
@@ -13,6 +14,33 @@ class TodayAppointmentsWidget extends BaseWidget
     protected static ?int $sort = 2;
     protected int|string|array $columnSpan = 'full';
     protected static ?string $heading = 'Marcações de Hoje';
+
+    private static ?array $colorMap = null;
+
+    private static function buildColorMap(): array
+    {
+        if (self::$colorMap !== null) return self::$colorMap;
+
+        $colors = ['success', 'info', 'danger', 'warning', 'primary', 'gray'];
+        $icons  = [
+            'heroicon-m-hand-raised',
+            'heroicon-m-sparkles',
+            'heroicon-m-star',
+            'heroicon-m-scissors',
+            'heroicon-m-heart',
+            'heroicon-m-face-smile',
+        ];
+
+        $ids = Employee::where('active', true)->orderBy('id')->pluck('id')->toArray();
+        self::$colorMap = [];
+        foreach ($ids as $i => $id) {
+            self::$colorMap[$id] = [
+                'color' => $colors[$i % count($colors)],
+                'icon'  => $icons[$i % count($icons)],
+            ];
+        }
+        return self::$colorMap;
+    }
 
     public function table(Table $table): Table
     {
@@ -39,26 +67,38 @@ class TodayAppointmentsWidget extends BaseWidget
                     ->searchable(),
 
                 Tables\Columns\TextColumn::make('employee.name')
-                    ->label('Profissional'),
+                    ->label('Profissional')
+                    ->badge()
+                    ->color(fn ($record) => (self::buildColorMap()[$record->employee_id ?? 0] ?? ['color' => 'gray'])['color'])
+                    ->icon(fn ($record)  => (self::buildColorMap()[$record->employee_id ?? 0] ?? ['icon' => 'heroicon-m-user'])['icon']),
 
                 Tables\Columns\TextColumn::make('price')
                     ->label('Valor')
                     ->formatStateUsing(fn ($state) => '€ ' . number_format((float)$state, 2, ',', '.')),
 
-                Tables\Columns\BadgeColumn::make('status')
+                Tables\Columns\TextColumn::make('status')
                     ->label('Estado')
-                    ->colors([
-                        'warning'  => 'scheduled',
-                        'primary'  => 'confirmed',
-                        'success'  => 'completed',
-                        'danger'   => 'cancelled',
-                    ])
+                    ->badge()
+                    ->color(fn ($state) => match($state) {
+                        'scheduled' => 'warning',
+                        'confirmed' => 'info',
+                        'completed' => 'success',
+                        'cancelled' => 'danger',
+                        default     => 'gray',
+                    })
+                    ->icon(fn ($state) => match($state) {
+                        'scheduled' => 'heroicon-m-clock',
+                        'confirmed' => 'heroicon-m-check-circle',
+                        'completed' => 'heroicon-m-check-badge',
+                        'cancelled' => 'heroicon-m-x-circle',
+                        default     => 'heroicon-m-question-mark-circle',
+                    })
                     ->formatStateUsing(fn ($state) => match($state) {
-                        'scheduled'  => 'Agendada',
-                        'confirmed'  => 'Confirmada',
-                        'completed'  => 'Concluída',
-                        'cancelled'  => 'Cancelada',
-                        default      => $state,
+                        'scheduled' => 'Agendada',
+                        'confirmed' => 'Confirmada',
+                        'completed' => 'Concluída',
+                        'cancelled' => 'Cancelada',
+                        default     => $state,
                     }),
             ])
             ->emptyStateHeading('Sem marcações para hoje')
