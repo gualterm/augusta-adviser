@@ -317,4 +317,66 @@ class ClientPortalController extends Controller
             ->withErrors(['appointment_time' => 'Não há disponibilidade nesse horário. Por favor escolhe outra data ou hora.'])
             ->withInput();
     }
+
+    /**
+     * Mostra o formulário de remarcação para uma marcação existente.
+     */
+    public function showReschedule(int $id)
+    {
+        $client = \Illuminate\Support\Facades\Auth::guard('client')->user();
+        $appointment = \App\Models\Appointment::where('id', $id)
+            ->where('client_id', $client->id)
+            ->where('reschedule_count', 0)
+            ->where('status', '!=', 'cancelled')
+            ->where('appointment_date', '>=', now()->toDateString())
+            ->firstOrFail();
+        return view('portal.reschedule', compact('appointment'));
+    }
+
+    /**
+     * Grava a remarcação.
+     */
+    public function saveReschedule(\Illuminate\Http\Request $request, int $id)
+    {
+        $client = \Illuminate\Support\Facades\Auth::guard('client')->user();
+        $appointment = \App\Models\Appointment::where('id', $id)
+            ->where('client_id', $client->id)
+            ->where('reschedule_count', 0)
+            ->where('status', '!=', 'cancelled')
+            ->where('appointment_date', '>=', now()->toDateString())
+            ->firstOrFail();
+
+        $data = $request->validate([
+            'appointment_date' => ['required', 'date', 'after_or_equal:today'],
+            'appointment_time' => ['required'],
+        ]);
+
+        $service   = $appointment->service;
+        $startTime = \Carbon\Carbon::parse($data['appointment_time'])->format('H:i');
+        $endTime   = \Carbon\Carbon::parse($startTime)->addMinutes($service->duration_minutes)->format('H:i');
+
+        // Verificar disponibilidade (ignora a própria marcação)
+        if (\App\Services\AppointmentConflictService::employeeHasConflict(
+            $appointment->employee_id, $data['appointment_date'], $startTime, $endTime, $appointment->id
+        )) {
+            return back()->withErrors(['appointment_time' => 'O profissional não está disponível nesse horário.']);
+        }
+
+        $workstation = \App\Services\AppointmentConflictService::findAlternativeWorkstation(
+            $service->workstation_type, $data['appointment_date'], $startTime, $endTime
+        );
+        if (!$workstation) {
+            return back()->withErrors(['appointment_time' => 'Não há posto disponível nesse horário.']);
+        }
+
+        $appointment->update([
+            'appointment_date' => $data['appointment_date'],
+            'appointment_time' => $startTime,
+            'end_time'         => $endTime,
+            'workstation_id'   => $workstation->id,
+            'reschedule_count' => 1,
+        ]);
+
+        return redirect()->route('portal.dashboard')->with('booking_success', true);
+    }
 }

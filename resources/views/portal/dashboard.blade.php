@@ -62,6 +62,11 @@ body{font-family:'Montserrat',sans-serif;background:#faf8f5;color:#555;}
 <div>
 <div class="time">{{ \Illuminate\Support\Carbon::parse($appointment->appointment_date)->format('d/m/Y') }} às {{ \Illuminate\Support\Carbon::parse($appointment->appointment_time)->format('H:i') }}</div>
 <div class="meta">{{ $appointment->service?->name }} · {{ $appointment->employee?->name }}{{ $appointment->secondaryEmployee ? ' & ' . $appointment->secondaryEmployee->name : '' }}</div>
+@if($appointment->reschedule_count === 0 && in_array($appointment->status, ['scheduled','confirmed']))
+<div style='margin-top:8px;'>
+  <a href="{{ route('portal.reschedule', $appointment->id) }}" style='font-size:12px;color:#7a6b5d;border:1px solid #cdb9a9;border-radius:6px;padding:4px 12px;text-decoration:none;display:inline-block;'>&#8635; Remarcar</a>
+</div>
+@endif
 @if($appointment->price && $appointment->price < ($appointment->service?->price ?? PHP_INT_MAX))
 <div class="meta" style="margin-top:4px;"><del style="color:#bbb;">€ {{ number_format($appointment->service->price,2,",",".") }}</del> <strong style="color:#5a8a52;">€ {{ number_format($appointment->price,2,",",".") }}</strong> <span style="font-size:11px;color:#9b8a7c;">(promoção)</span></div>
 @elseif($appointment->price)

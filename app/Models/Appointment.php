@@ -7,10 +7,13 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Appointment extends Model
 {
+    protected $casts = ['appointment_date' => 'date', 'two_employees' => 'boolean'];
+
     protected $fillable = [
         'client_id',
         'employee_id',
         'secondary_employee_id',
+        'reschedule_count',
         'workstation_id',
         'service_id',
         'appointment_date',

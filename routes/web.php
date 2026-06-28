@@ -29,6 +29,8 @@ Route::prefix('portal')->name('portal.')->group(function () {
         Route::get('/', [ClientPortalController::class, 'dashboard'])->name('dashboard');
         Route::get('/marcar', [ClientPortalController::class, 'showBook'])->name('book');
         Route::post('/marcar', [ClientPortalController::class, 'book'])->name('book.store');
+        Route::get('/remarcar/{id}', [ClientPortalController::class, 'showReschedule'])->name('reschedule');
+        Route::post('/remarcar/{id}', [ClientPortalController::class, 'saveReschedule'])->name('reschedule.save');
         Route::get('/suggest-slot', [ClientPortalController::class, 'suggestSlot'])->name('suggest-slot');
         Route::get('/available-slots', [ClientPortalController::class, 'availableSlots'])->name('available-slots');
     });
