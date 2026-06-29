@@ -26,6 +26,7 @@ class ClientAuthController extends Controller
             'email' => ['required', 'email', 'max:150', Rule::unique('clients', 'email')],
             'phone' => ['nullable', 'string', 'max:30'],
             'password' => ['required', 'string', 'min:6', 'confirmed'],
+            'data_consent' => ['accepted'],
         ]);
 
         $client = Client::create([
@@ -34,11 +35,14 @@ class ClientAuthController extends Controller
             'phone' => $data['phone'] ?? null,
             'password' => $data['password'],
             'active' => true,
+            'marketing_consent' => request()->boolean('marketing_consent'),
+            'data_consent_at'   => now(),
         ]);
 
         Auth::guard('client')->login($client);
+        $client->sendEmailVerificationNotification();
 
-        return redirect()->route('portal.dashboard');
+        return redirect()->route('portal.verification.notice');
     }
 
     public function showLogin()
@@ -62,7 +66,8 @@ class ClientAuthController extends Controller
         $request->session()->regenerate();
 
         $client = Auth::guard('client')->user();
-        if (!$client->password_changed_at || $client->password_changed_at->diffInMonths(now()) >= 12) {
+        if (!$client->hasVerifiedEmail()) { return redirect()->route('portal.verification.notice'); }
+        if ($client->password_changed_at && $client->password_changed_at->diffInMonths(now()) >= 12) {
             session()->flash('suggest_password_change', true);
         }
 
@@ -146,10 +151,36 @@ class ClientAuthController extends Controller
                 return back()->withErrors(['password' => 'Por segurança, escolhe uma password diferente da anterior.'])->withInput();
             }
         }
-        $client->update(['password' => Hash::make($request->password), 'password_changed_at' => now()]);
+        $client->update(['password' => $request->password, 'password_changed_at' => now()]);
         DB::table('password_reset_tokens')->where('email', $request->email)->delete();
 
         return redirect()->route('portal.login')->with('status', 'Password alterada com sucesso. Podes fazer login.');
     }
 
+
+    /**
+     * Cancela uma marcação do cliente (até 1 dia antes).
+     */
+    public function cancelAppointment(\Illuminate\Http\Request $request, int $id)
+    {
+        $client = \Illuminate\Support\Facades\Auth::guard('client')->user();
+
+        $appointment = \App\Models\Appointment::where('id', $id)
+            ->where('client_id', $client->id)
+            ->whereIn('status', ['scheduled', 'confirmed'])
+            ->firstOrFail();
+
+        // Só pode cancelar se faltar mais de 1 dia
+        $appointmentDateTime = \Carbon\Carbon::parse(
+            $appointment->appointment_date->format('Y-m-d') . ' ' . $appointment->appointment_time
+        );
+
+        if ($appointmentDateTime->diffInHours(now(), false) > -24) {
+            return back()->withErrors(['cancel' => 'Só é possível cancelar até 24 horas antes da marcação. Para cancelamentos de última hora liga-nos diretamente.']);
+        }
+
+        $appointment->update(['status' => 'cancelled']);
+
+        return redirect()->route('portal.dashboard')->with('cancel_success', true);
+    }
 }

@@ -40,6 +40,14 @@ body{font-family:'Montserrat',sans-serif;background:#faf8f5;color:#555;}
 </div>
 </div>
 
+@if(session('cancel_success'))
+<div style="background:#fef2f2;border:1px solid #fecaca;border-radius:12px;padding:14px 18px;margin-bottom:16px;color:#c0392b;font-size:14px;">
+  ✕ Marcação cancelada. Se mudares de ideias, podes fazer uma nova marcação.
+</div>
+@endif
+@if(session('email_verified'))
+<div style="background:#e8f3ea;border:1px solid #c3e0c9;border-radius:12px;padding:14px 18px;margin-bottom:16px;color:#2f6b3f;font-size:14px;">✓ Email confirmado! Bem-vindo(a) à Augusta Adviser.</div>
+@endif
 @if(session('booking_success'))
 <div class="success">Marcação efetuada com sucesso! Já a podes ver abaixo.</div>
 @endif
@@ -67,6 +75,21 @@ body{font-family:'Montserrat',sans-serif;background:#faf8f5;color:#555;}
   <a href="{{ route('portal.reschedule', $appointment->id) }}" style='font-size:12px;color:#7a6b5d;border:1px solid #cdb9a9;border-radius:6px;padding:4px 12px;text-decoration:none;display:inline-block;'>&#8635; Remarcar</a>
 </div>
 @endif
+ @php $apptDT = \Carbon\Carbon::parse($appointment->appointment_date->format('Y-m-d').' '.$appointment->appointment_time); @endphp
+ @if(in_array($appointment->status, ['scheduled','confirmed']))
+   @if($apptDT->diffInHours(now(), false) < -24)
+   <div style='margin-top:6px;'>
+     <form method='POST' action="{{ route('portal.cancel', $appointment->id) }}" onsubmit="return confirm('Tens a certeza que queres cancelar esta marcação?')">
+       @csrf
+       <button type='submit' style='font-size:12px;color:#c0392b;background:none;border:1px solid #e8c4c4;border-radius:6px;padding:4px 12px;cursor:pointer;'>&#10005; Cancelar</button>
+     </form>
+   </div>
+   @else
+   <div style='margin-top:6px;'>
+     <span style='font-size:12px;color:#7a6b5d;'>📞 Para cancelar liga-nos diretamente</span>
+   </div>
+   @endif
+ @endif
 @if($appointment->price && $appointment->price < ($appointment->service?->price ?? PHP_INT_MAX))
 <div class="meta" style="margin-top:4px;"><del style="color:#bbb;">€ {{ number_format($appointment->service->price,2,",",".") }}</del> <strong style="color:#5a8a52;">€ {{ number_format($appointment->price,2,",",".") }}</strong> <span style="font-size:11px;color:#9b8a7c;">(promoção)</span></div>
 @elseif($appointment->price)

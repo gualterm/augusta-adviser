@@ -85,6 +85,36 @@ class AdminPanelProvider extends PanelProvider
 }
 </style>'
             )
+            
+            ->renderHook(
+                \Filament\View\PanelsRenderHook::HEAD_END,
+                fn () => '<style>
+/* Augusta theme — tons quentes */
+:root {
+    --sidebar-bg: #f8f4f0;
+    --topbar-bg: #ffffff;
+}
+.fi-sidebar {
+    background-color: #f5f0eb !important;
+    border-right: 1px solid #e8ddd6 !important;
+}
+.fi-sidebar-nav-groups {
+    padding-top: 8px;
+}
+.fi-sidebar-item-button:hover,
+.fi-sidebar-item-button.fi-active {
+    background-color: rgba(92,74,58,0.08) !important;
+}
+.fi-topbar {
+    background-color: #faf7f4 !important;
+    border-bottom: 1px solid #e8ddd6 !important;
+}
+.fi-logo {
+    color: #3d2f25 !important;
+}
+/* augusta-theme */
+</style>'
+            )
             ->authMiddleware([Authenticate::class])
             // Barra ambiente (dinâmica por APP_URL)
             ->renderHook(

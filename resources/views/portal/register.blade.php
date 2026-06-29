@@ -19,6 +19,8 @@ button{width:100%;padding:13px;background:#7a6b5d;color:#fff;border:none;border-
 button:hover{opacity:.92;}
 .foot{text-align:center;margin-top:18px;font-size:13px;color:#7a6b5d;}
 .foot a{color:#7a6b5d;font-weight:600;}
+.consent{display:flex;align-items:flex-start;gap:10px;margin-bottom:14px;font-size:12.5px;color:#6f5f54;line-height:1.5;}
+.consent input[type=checkbox]{width:16px;min-width:16px;height:16px;margin-top:2px;accent-color:#7a6b5d;flex-shrink:0;}
 </style>
 </head>
 <body>
@@ -46,6 +48,15 @@ button:hover{opacity:.92;}
 <label for="password_confirmation">Confirmar Password</label>
 <input type="password" id="password_confirmation" name="password_confirmation" required>
 
+<div class="consent">
+<input type="checkbox" name="data_consent" value="1" required oninvalid="this.setCustomValidity('Por favor aceita os termos para poderes continuar.')" oninput="this.setCustomValidity('')">
+<label>Aceito que a Augusta Adviser guarde e processe os meus dados pessoais para gestão das marcações (RGPD). <em>(obrigatório)</em></label>
+</div>
+@error('data_consent')<div class="error" style="margin-top:-8px;margin-bottom:12px;">{{ $message }}</div>@enderror
+<div class="consent">
+<input type="checkbox" name="marketing_consent" value="1">
+<label>Aceito receber promoções exclusivas e novidades por email. <em>(opcional)</em></label>
+</div>
 <button type="submit">Criar Conta</button>
 </form>
 

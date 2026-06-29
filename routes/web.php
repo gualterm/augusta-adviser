@@ -30,7 +30,13 @@ Route::prefix('portal')->name('portal.')->group(function () {
         Route::get('/marcar', [ClientPortalController::class, 'showBook'])->name('book');
         Route::post('/marcar', [ClientPortalController::class, 'book'])->name('book.store');
         Route::get('/remarcar/{id}', [ClientPortalController::class, 'showReschedule'])->name('reschedule');
-        Route::post('/remarcar/{id}', [ClientPortalController::class, 'saveReschedule'])->name('reschedule.save');
+        
+    Route::get('/email/verificar', [\App\Http\Controllers\Portal\ClientVerificationController::class, 'notice'])->name('verification.notice')->middleware('auth:client');
+    Route::get('/email/verificar/{id}/{hash}', [\App\Http\Controllers\Portal\ClientVerificationController::class, 'verify'])->name('verification.verify')->middleware('signed');
+    Route::post('/email/reenviar', [\App\Http\Controllers\Portal\ClientVerificationController::class, 'resend'])->name('verification.resend')->middleware(['auth:client', 'throttle:6,1']);
+
+    Route::post('/cancelar/{id}', [ClientAuthController::class, 'cancelAppointment'])->name('cancel')->middleware('auth:client');
+    Route::post('/remarcar/{id}', [ClientPortalController::class, 'saveReschedule'])->name('reschedule.save');
         Route::get('/suggest-slot', [ClientPortalController::class, 'suggestSlot'])->name('suggest-slot');
         Route::get('/available-slots', [ClientPortalController::class, 'availableSlots'])->name('available-slots');
     });
