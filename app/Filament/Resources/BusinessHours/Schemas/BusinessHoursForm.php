@@ -16,7 +16,8 @@ class BusinessHoursForm
                 ->schema([
                     Toggle::make('is_open')
                         ->label('Loja aberta neste dia')
-                        ->live(),
+                        ->live()
+                        ->columnSpanFull(),
                     TimePicker::make('open_time')
                         ->label('Hora de abertura')
                         ->seconds(false)
@@ -25,8 +26,17 @@ class BusinessHoursForm
                         ->label('Hora de fecho')
                         ->seconds(false)
                         ->visible(fn ($get) => (bool) $get('is_open')),
+                    TimePicker::make('lunch_start')
+                        ->label('Início de almoço')
+                        ->seconds(false)
+                        ->visible(fn ($get) => (bool) $get('is_open'))
+                        ->helperText('Deixar vazio se não houver pausa'),
+                    TimePicker::make('lunch_end')
+                        ->label('Fim de almoço')
+                        ->seconds(false)
+                        ->visible(fn ($get) => (bool) $get('is_open')),
                 ])
-                ->columns(3),
+                ->columns(2),
         ]);
     }
 }

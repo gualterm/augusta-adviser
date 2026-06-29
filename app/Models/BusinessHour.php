@@ -5,7 +5,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class BusinessHour extends Model
 {
-    protected $fillable = ['day_of_week', 'open_time', 'close_time', 'is_open'];
+    protected $fillable = ['day_of_week', 'open_time', 'close_time', 'is_open', 'lunch_start', 'lunch_end'];
 
     protected $casts = ['is_open' => 'boolean'];
 

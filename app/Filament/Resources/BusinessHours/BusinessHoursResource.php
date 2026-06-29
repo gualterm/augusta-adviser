@@ -52,6 +52,12 @@ class BusinessHoursResource extends Resource
                 TextColumn::make('close_time')
                     ->label('Fecho')
                     ->formatStateUsing(fn ($state) => $state ? substr($state, 0, 5) : '—'),
+                TextColumn::make('lunch_start')
+                    ->label('Almoço início')
+                    ->formatStateUsing(fn ($state) => $state ? substr($state, 0, 5) : '—'),
+                TextColumn::make('lunch_end')
+                    ->label('Almoço fim')
+                    ->formatStateUsing(fn ($state) => $state ? substr($state, 0, 5) : '—'),
             ])
             ->defaultSort('day_of_week')
             ->recordActions([EditAction::make()])
