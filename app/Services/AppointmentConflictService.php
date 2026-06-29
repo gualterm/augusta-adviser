@@ -16,7 +16,16 @@ class AppointmentConflictService
         if ($employeeId === null || $endTime === null) {
             return false;
         }
-        return Appointment::query()
+
+        // Obter max_concurrent das Áreas do profissional.
+        // Manicure tem max_concurrent=2 (2 mesas em openspace).
+        // Todos os outros têm 1. Usar DB facade para não exigir Model importado.
+        $maxConcurrent = \Illuminate\Support\Facades\DB::table('employee_area')
+            ->join('areas', 'areas.id', '=', 'employee_area.area_id')
+            ->where('employee_area.employee_id', $employeeId)
+            ->max('areas.max_concurrent') ?? 1;
+
+        $count = Appointment::query()
             ->when($ignoreAppointmentId, fn ($q) => $q->where('id', '!=', $ignoreAppointmentId))
             ->where(function ($q) use ($employeeId) {
                 $q->where('employee_id', $employeeId)
@@ -32,8 +41,10 @@ class AppointmentConflictService
                           ->where('end_time', '>=', $endTime);
                     });
             })
-            ->exists();
-    }
+            ->count();
+
+        return $count >= $maxConcurrent;
+        }
     protected static function overlappingWorkstationCount(
         ?int $workstationId,
         string $date,

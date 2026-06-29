@@ -4,6 +4,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class Employee extends Model
 {
     protected $fillable = [
@@ -15,6 +16,7 @@ class Employee extends Model
         'nif',
         'default_commission_percentage',
         'active',
+        'preferred_workstation_id',
     ];
     // ─── Relationships ───────────────────────────────────────────────────────
     public function user(): BelongsTo
@@ -30,6 +32,11 @@ class Employee extends Model
     public function commissions(): HasMany
     {
         return $this->hasMany(EmployeeCommission::class);
+    }
+
+    public function preferredWorkstation(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(Workstation::class, 'preferred_workstation_id');
     }
 
     public function schedules(): HasMany
