@@ -1094,6 +1094,14 @@ style="color:#7a6b5d;text-decoration:none;">
 </a>
 </p>
 </div>
+<div class="footer-col">
+<h4>Horário</h4>
+@if(isset($businessHours))
+@foreach($businessHours->filter(fn($h) => $h->is_open)->sortBy(fn($h) => $h->day_of_week === 0 ? 7 : $h->day_of_week) as $hour)
+<p>{{ $hour->day_name }}: {{ substr($hour->open_time, 0, 5) }}h – {{ substr($hour->close_time, 0, 5) }}h</p>
+@endforeach
+@endif
+</div>
 </div>
 <div class="footer-bottom">
 © 2026 Augusta Adviser. Todos os direitos reservados.

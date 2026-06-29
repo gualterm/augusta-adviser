@@ -31,6 +31,11 @@ class Employee extends Model
     {
         return $this->hasMany(EmployeeCommission::class);
     }
+
+    public function schedules(): HasMany
+    {
+        return $this->hasMany(EmployeeSchedule::class)->orderBy('day_of_week');
+    }
     // ─── Helpers ─────────────────────────────────────────────────────────────
     public function commissionPercentageFor(?string $category): float
     {

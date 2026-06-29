@@ -5,7 +5,8 @@ use App\Http\Controllers\Portal\ClientPortalController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
-    return view('welcome');
+    $businessHours = \App\Models\BusinessHour::orderBy('day_of_week')->get();
+    return view('welcome', compact('businessHours'));
 });
 
 Route::get('/staff', function () {

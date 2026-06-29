@@ -1,20 +1,24 @@
 <?php
 namespace App\Filament\Resources\Employees\Schemas;
+
 use App\Models\Employee;
 use App\Models\Service;
-use App\Models\Area;
 use App\Models\User;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\TimePicker;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
+
 class EmployeeForm
 {
     public static function configure(Schema $schema): Schema
     {
         return $schema->components([
+
+            // ── Dados gerais ─────────────────────────────────────────────────
             Section::make('Dados do Profissional')
                 ->schema([
                     Select::make('user_id')
@@ -38,7 +42,7 @@ class EmployeeForm
                     TextInput::make('role')
                         ->label('Especialidade')->maxLength(100)
                         ->datalist(
-                            Employee::query()->whereNotNull('role')->where('role','!=','')
+                            Employee::query()->whereNotNull('role')->where('role', '!=', '')
                                 ->distinct()->orderBy('role')->pluck('role')->toArray()
                         )
                         ->placeholder('Ex: Esteticista, Massagista, Manicure...'),
@@ -65,6 +69,45 @@ class EmployeeForm
                         ->helperText('Pode ser 0 — por ex. para a dona/sócia.'),
                     Toggle::make('active')->label('Ativo')->default(true),
                 ])->columns(2),
+
+            // ── Horário de trabalho ──────────────────────────────────────────
+            Section::make('Horário de Trabalho')
+                ->description('Dias e horas em que este profissional está disponível. Dias não listados são considerados folga.')
+                ->schema([
+                    Repeater::make('schedules')
+                        ->relationship('schedules')
+                        ->label('')
+                        ->schema([
+                            Select::make('day_of_week')
+                                ->label('Dia')
+                                ->options([
+                                    1 => 'Segunda-feira',
+                                    2 => 'Terça-feira',
+                                    3 => 'Quarta-feira',
+                                    4 => 'Quinta-feira',
+                                    5 => 'Sexta-feira',
+                                    6 => 'Sábado',
+                                    0 => 'Domingo',
+                                ])
+                                ->required(),
+                            TimePicker::make('start_time')
+                                ->label('Início')
+                                ->seconds(false)
+                                ->required(),
+                            TimePicker::make('end_time')
+                                ->label('Fim')
+                                ->seconds(false)
+                                ->required(),
+                            Toggle::make('is_working')
+                                ->label('Trabalha')
+                                ->default(true),
+                        ])
+                        ->columns(4)
+                        ->addActionLabel('Adicionar dia')
+                        ->defaultItems(0),
+                ]),
+
+            // ── Comissões por categoria ──────────────────────────────────────
             Section::make('Comissões por Categoria (opcional)')
                 ->description('% diferente da padrão para categorias específicas.')
                 ->schema([
@@ -74,7 +117,7 @@ class EmployeeForm
                             Select::make('category')->label('Categoria')
                                 ->searchable()->preload()
                                 ->options(Service::query()->distinct()->orderBy('category')
-                                    ->pluck('category','category')->toArray())
+                                    ->pluck('category', 'category')->toArray())
                                 ->required(),
                             TextInput::make('percentage')->label('% Comissão')
                                 ->numeric()->suffix('%')->minValue(0)->maxValue(100)->required(),
