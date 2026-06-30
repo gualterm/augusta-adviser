@@ -41,8 +41,9 @@ class FreeSlots extends Page
                 $s = $cur->copy(); $e = $cur->copy()->addMinutes(30);
                 $free = $employees->filter(function($emp) use ($appts,$s,$e) {
                     foreach ($appts->where('employee_id',$emp->id) as $a) {
-                        $as = Carbon::parse($a->appointment_date.' '.$a->appointment_time);
-                        $ae = Carbon::parse($a->appointment_date.' '.$a->end_time);
+                        $d2 = Carbon::parse($a->appointment_date)->toDateString();
+                        $as = Carbon::parse($d2.' '.$a->appointment_time);
+                        $ae = Carbon::parse($d2.' '.$a->end_time);
                         if ($s->lt($ae) && $e->gt($as)) return false;
                     }
                     return true;
