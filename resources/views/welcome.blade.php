@@ -1098,7 +1098,7 @@ style="color:#7a6b5d;text-decoration:none;">
 <h4>Horário</h4>
 @if(isset($businessHours))
 @foreach($businessHours->filter(fn($h) => $h->is_open)->sortBy(fn($h) => $h->day_of_week === 0 ? 7 : $h->day_of_week) as $hour)
-<p>{{ $hour->day_name }}: {{ substr($hour->open_time, 0, 5) }}h – {{ substr($hour->close_time, 0, 5) }}h{{ $hour->lunch_start ? " <small style="color:#999">(almoço ".substr($hour->lunch_start,0,5)."–".substr($hour->lunch_end,0,5).")</small>" : "" }}</p>
+<p>{{ $hour->day_name }}: {{ substr($hour->open_time, 0, 5) }}h – {{ substr($hour->close_time, 0, 5) }}h{{ $hour->lunch_start ? '<small style="color:#999"> (almoço '.substr($hour->lunch_start,0,5).'–'.substr($hour->lunch_end,0,5).')</small>' : '' }}</p>
 @endforeach
 @endif
 </div>
