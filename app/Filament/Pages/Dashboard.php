@@ -38,9 +38,4 @@ class Dashboard extends BaseDashboard
             WeeklyByProfessionalWidget::class,
         ];
     }
-
-    public function getColumns(): int|string|array
-    {
-        return 2;
-    }
 }
