@@ -26,7 +26,9 @@ class RoomAvailability extends Page
 
     protected string $view = 'filament.pages.room-availability';
 
-    public ?string $date = null;
+    public ?string $date     = null;
+    public string $viewMode  = 'day'; // 'day' | 'week'
+    public int    $weekOffset = 0;
 
     /**
      * Paleta de cores para identificar visualmente cada equipamento.
@@ -181,6 +183,7 @@ class RoomAvailability extends Page
 
         return Employee::query()
             ->where('active', true)
+            ->whereHas('user', fn ($q) => $q->where('role', '!=', 'recepcionista'))
             ->orderBy('name')
             ->get()
             ->values()
@@ -231,5 +234,193 @@ class RoomAvailability extends Page
 
                 return $employee;
             });
+    }
+    /**
+     * Linha de tempo por profissional: blocos livres e ocupados.
+     * Usa o horário da loja para definir a janela do dia.
+     */
+    public function getEmployeeTimeline(): \Illuminate\Support\Collection
+    {
+        $date      = $this->date ?: now()->format('Y-m-d');
+        $dayOfWeek = (int) \Carbon\Carbon::parse($date)->format('w'); // 0=Dom
+
+        // Horário da loja para este dia
+        $bh = \App\Models\BusinessHour::where('day_of_week', $dayOfWeek)->first();
+
+        if (!$bh || !$bh->is_open) {
+            return collect(); // loja fechada
+        }
+
+        $dayStart    = \Carbon\Carbon::parse($date . ' ' . $bh->open_time);
+        $dayEnd      = \Carbon\Carbon::parse($date . ' ' . $bh->close_time);
+        $totalMinutes = $dayStart->diffInMinutes($dayEnd);
+
+        if ($totalMinutes <= 0) return collect();
+
+        return Employee::query()
+            ->where('active', true)
+            ->whereHas('user', fn ($q) => $q->where('role', '!=', 'recepcionista'))
+            ->orderBy('name')
+            ->get()
+            ->values()
+            ->map(function (Employee $employee, int $index) use ($date, $dayStart, $dayEnd, $totalMinutes) {
+                $appointments = Appointment::query()
+                    ->where('employee_id', $employee->id)
+                    ->where('appointment_date', $date)
+                    ->where('status', '!=', 'cancelled')
+                    ->whereNotNull('appointment_time')
+                    ->whereNotNull('end_time')
+                    ->with(['client', 'service'])
+                    ->orderBy('appointment_time')
+                    ->get();
+
+                $blocks = [];
+                $cursor = $dayStart->copy();
+
+                foreach ($appointments as $appt) {
+                    $apptStart = \Carbon\Carbon::parse($date . ' ' . $appt->appointment_time);
+                    $apptEnd   = \Carbon\Carbon::parse($date . ' ' . $appt->end_time);
+
+                    // ajustar ao horário da loja
+                    if ($apptStart->lt($dayStart)) $apptStart = $dayStart->copy();
+                    if ($apptEnd->gt($dayEnd))     $apptEnd   = $dayEnd->copy();
+                    if ($apptEnd->lte($apptStart)) continue;
+
+                    // slot livre antes desta marcação
+                    if ($cursor->lt($apptStart)) {
+                        $freeMins = $cursor->diffInMinutes($apptStart);
+                        $blocks[] = [
+                            'type'      => 'free',
+                            'start'     => $cursor->format('H:i'),
+                            'end'       => $apptStart->format('H:i'),
+                            'pct'       => round($freeMins / $totalMinutes * 100, 2),
+                            'createUrl' => \App\Filament\Resources\Appointments\AppointmentResource::getUrl('create') . '?' . http_build_query([
+                                'employee_id'      => $employee->id,
+                                'appointment_date' => $date,
+                                'appointment_time' => $cursor->format('H:i'),
+                            ]),
+                        ];
+                    }
+
+                    // bloco ocupado
+                    $busyMins = $apptStart->diffInMinutes($apptEnd);
+                    $blocks[] = [
+                        'type'    => 'busy',
+                        'start'   => $apptStart->format('H:i'),
+                        'end'     => $apptEnd->format('H:i'),
+                        'pct'     => round($busyMins / $totalMinutes * 100, 2),
+                        'client'  => $appt->client?->name ?? '—',
+                        'service' => $appt->service?->name ?? '—',
+                        'editUrl' => \App\Filament\Resources\Appointments\AppointmentResource::getUrl('edit', ['record' => $appt]),
+                    ];
+
+                    $cursor = $apptEnd->copy();
+                }
+
+                // slot livre final
+                if ($cursor->lt($dayEnd)) {
+                    $freeMins = $cursor->diffInMinutes($dayEnd);
+                    $blocks[] = [
+                        'type'      => 'free',
+                        'start'     => $cursor->format('H:i'),
+                        'end'       => $dayEnd->format('H:i'),
+                        'pct'       => round($freeMins / $totalMinutes * 100, 2),
+                        'createUrl' => \App\Filament\Resources\Appointments\AppointmentResource::getUrl('create') . '?' . http_build_query([
+                            'employee_id'      => $employee->id,
+                            'appointment_date' => $date,
+                            'appointment_time' => $cursor->format('H:i'),
+                        ]),
+                    ];
+                }
+
+                return [
+                    'name'     => $employee->name,
+                    'color'    => self::EMPLOYEE_COLORS[$index % count(self::EMPLOYEE_COLORS)],
+                    'dayStart' => $dayStart->format('H:i'),
+                    'dayEnd'   => $dayEnd->format('H:i'),
+                    'blocks'   => $blocks,
+                ];
+            });
+    }
+    /**
+     * Vista semanal: para cada profissional (não-recepcionista),
+     * mostra os 7 dias da semana com marcações e slots livres.
+     */
+    public function getWeeklyTimeline(): array
+    {
+        $weekStart = \Carbon\Carbon::now()->startOfWeek(\Carbon\Carbon::MONDAY)->addWeeks($this->weekOffset);
+        $days      = [];
+        for ($i = 0; $i < 7; $i++) {
+            $days[] = $weekStart->copy()->addDays($i);
+        }
+
+        $employees = Employee::query()
+            ->where('active', true)
+            ->whereHas('user', fn ($q) => $q->where('role', '!=', 'recepcionista'))
+            ->orderBy('name')
+            ->get()
+            ->values();
+
+        $result = [];
+        foreach ($employees as $index => $employee) {
+            $color    = self::EMPLOYEE_COLORS[$index % count(self::EMPLOYEE_COLORS)];
+            $weekData = [];
+
+            foreach ($days as $day) {
+                $date      = $day->format('Y-m-d');
+                $dayOfWeek = (int) $day->format('w'); // 0=Dom
+
+                $bh     = \App\Models\BusinessHour::where('day_of_week', $dayOfWeek)->first();
+                $isOpen = $bh && $bh->is_open;
+
+                $appointments = [];
+                if ($isOpen) {
+                    $appts = Appointment::query()
+                        ->where('employee_id', $employee->id)
+                        ->where('appointment_date', $date)
+                        ->where('status', '!=', 'cancelled')
+                        ->whereNotNull('appointment_time')
+                        ->with(['client', 'service'])
+                        ->orderBy('appointment_time')
+                        ->get();
+
+                    foreach ($appts as $appt) {
+                        $appointments[] = [
+                            'time'    => substr($appt->appointment_time, 0, 5),
+                            'end'     => $appt->end_time ? substr($appt->end_time, 0, 5) : '',
+                            'client'  => $appt->client?->name  ?? '—',
+                            'service' => $appt->service?->name ?? '—',
+                            'editUrl' => \App\Filament\Resources\Appointments\AppointmentResource::getUrl('edit', ['record' => $appt]),
+                        ];
+                    }
+                }
+
+                $createUrl = \App\Filament\Resources\Appointments\AppointmentResource::getUrl('create') . '?' . http_build_query([
+                    'employee_id'      => $employee->id,
+                    'appointment_date' => $date,
+                ]);
+
+                $weekData[] = [
+                    'date'         => $date,
+                    'label'        => $day->translatedFormat('D d/m'),
+                    'isOpen'       => $isOpen,
+                    'appointments' => $appointments,
+                    'createUrl'    => $createUrl,
+                ];
+            }
+
+            $result[] = [
+                'name'     => $employee->name,
+                'color'    => $color,
+                'weekData' => $weekData,
+            ];
+        }
+
+        $fmt = fn ($d) => $d->translatedFormat('D d/m');
+        return [
+            'employees'      => $result,
+            'days'           => array_map($fmt, $days),
+            'weekStartLabel' => $days[0]->format('d/m') . ' – ' . $days[6]->format('d/m'),
+        ];
     }
 }

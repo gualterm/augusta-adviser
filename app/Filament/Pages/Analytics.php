@@ -10,6 +10,11 @@ use Filament\Pages\Page;
 
 class Analytics extends Page
 {
+    public static function canAccess(): bool
+    {
+        return \Illuminate\Support\Facades\Auth::user()?->role === 'admin';
+    }
+
     // $view não pode ser static em Filament v4
     protected string $view = 'filament.pages.analytics';
 

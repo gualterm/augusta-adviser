@@ -32,10 +32,12 @@
                         <span style="color:#6b7280;">Confirmadas</span>
                         <strong style="color:{{ $c['text'] }};">{{ $prof['confirmed'] }}</strong>
                     </div>
+                    @if($showRevenue)
                     <div style="display:flex;justify-content:space-between;font-size:13px;border-top:1px solid {{ $c['border'] }};margin-top:8px;padding-top:8px;">
                         <span style="color:#6b7280;">Faturação</span>
                         <strong style="color:{{ $c['text'] }};">€ {{ number_format($prof['revenue'], 2, ',', '.') }}</strong>
                     </div>
+                    @endif
                 </div>
             @endforeach
         </div>

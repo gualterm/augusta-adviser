@@ -3,6 +3,7 @@
 namespace App\Filament\Widgets;
 
 use App\Models\Service;
+use Illuminate\Support\Facades\Auth;
 use Filament\Widgets\ChartWidget;
 
 class ServiceBreakdownChart extends ChartWidget
