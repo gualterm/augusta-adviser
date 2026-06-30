@@ -12,7 +12,7 @@ class FreeSlots extends Page
     protected static ?string $navigationIcon  = 'heroicon-o-clock';
     protected static ?string $navigationLabel = 'Horários Livres';
     protected static ?string $title           = 'Horários Livres';
-    protected static $navigationGroup         = 'Operações';
+    public static function getNavigationGroup(): string { return 'Operações'; }
     protected static ?int    $navigationSort  = 5;
     protected string         $view            = 'filament.pages.free-slots';
 
