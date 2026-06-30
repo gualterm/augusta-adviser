@@ -17,7 +17,7 @@ class FreeSlots extends Page
     public static function getNavigationLabel(): string { return 'Horários Livres'; }
     public static function getNavigationGroup(): string { return 'Operações'; }
     public static function getNavigationSort(): int { return 5; }
-    public static function getTitle(): string { return 'Horários Livres'; }
+    public function getTitle(): string { return 'Horários Livres'; }
 
     public function getFreeSlots(): array
     {
