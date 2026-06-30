@@ -12,20 +12,16 @@ use Filament\Support\Exceptions\Halt;
 class CreateAppointment extends CreateRecord
 {
     protected static string $resource = AppointmentResource::class;
-
-    public function mount(): void
+    protected function mutateFormDataBeforeFill(array $data): array
     {
-        parent::mount();
-
-        $overrides = array_filter([
-            'workstation_id' => request()->query('workstation_id'),
-            'employee_id' => request()->query('employee_id'),
+        $time = request()->query('appointment_time');
+        if ($time && strlen($time) === 5) { $time .= ':00'; }
+        return array_merge($data, array_filter([
+            'employee_id'      => request()->query('employee_id'),
+            'workstation_id'   => request()->query('workstation_id'),
             'appointment_date' => request()->query('appointment_date'),
-        ]);
-
-        if (! empty($overrides)) {
-            $this->form->fill(array_merge($this->form->getState(), $overrides));
-        }
+            'appointment_time' => $time,
+        ], fn($v) => $v !== null && $v !== ''));
     }
 
     protected function mutateFormDataBeforeCreate(array $data): array
