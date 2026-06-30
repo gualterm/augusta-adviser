@@ -19,6 +19,11 @@ class ClientsTable
                     ->label('Nome')
                     ->searchable()
                     ->sortable(),
+                TextColumn::make('is_presencial')
+                    ->label('')
+                    ->badge()
+                    ->formatStateUsing(fn ($state) => $state ? '⚠ Incompleto' : '')
+                    ->color(fn ($state) => $state ? 'warning' : null),
                 TextColumn::make('gender')
                     ->label('Género')
                     ->formatStateUsing(fn ($state) => match ($state) {
@@ -44,6 +49,8 @@ class ClientsTable
                     ->dateTime('d/m/Y H:i')
                     ->sortable(),
             ])
+            ->modifyQueryUsing(fn ($query) => $query->orderByRaw('is_presencial DESC, name ASC'))
+            ->recordClasses(fn ($record) => $record->is_presencial ? 'bg-amber-50' : null)
             ->filters([
                 SelectFilter::make('gender')
                     ->label('Género')

@@ -6,7 +6,9 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\Toggle;
+use Filament\Forms\Components\Placeholder;
 use Filament\Schemas\Components\Section;
+use Illuminate\Support\HtmlString;
 use Filament\Schemas\Schema;
 
 class ClientForm
@@ -15,6 +17,12 @@ class ClientForm
     {
         return $schema
             ->components([
+                Placeholder::make('aviso_presencial')
+                    ->label('')
+                    ->content(fn ($record) => $record?->is_presencial
+                        ? new HtmlString('<div style="background:#fef3c7;border-left:4px solid #f59e0b;border-radius:6px;padding:12px 16px;color:#92400e;font-size:14px;font-weight:600;margin-bottom:4px;">⚠️ Ficha incompleta — cliente criado presencialmente. Preencha o email ou telefone para remover este aviso.</div>')
+                        : new HtmlString(''))
+                    ->visible(fn ($record) => $record?->is_presencial === true),
                 Section::make('Dados do Cliente')
                     ->schema([
                         TextInput::make('name')
