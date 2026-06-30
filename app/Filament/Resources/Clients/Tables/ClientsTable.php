@@ -49,7 +49,7 @@ class ClientsTable
                     ->dateTime('d/m/Y H:i')
                     ->sortable(),
             ])
-            ->modifyQueryUsing(fn ($query) => $query->orderByRaw('is_presencial DESC, name ASC'))
+            ->defaultSort('is_presencial', 'desc')
             ->recordClasses(fn ($record) => $record->is_presencial ? 'bg-amber-50' : null)
             ->filters([
                 SelectFilter::make('gender')

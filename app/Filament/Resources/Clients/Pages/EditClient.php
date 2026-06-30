@@ -14,6 +14,8 @@ class EditClient extends EditRecord
     {
         if (!empty($data['email']) || !empty($data['phone'])) {
             $data['is_presencial'] = false;
+        } else {
+            $data['is_presencial'] = true;
         }
         return $data;
     }
