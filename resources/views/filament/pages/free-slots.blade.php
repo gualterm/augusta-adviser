@@ -40,7 +40,7 @@
 
 @if(empty($days))
     <div class="fs-no-slots">
-        <x-heroicon-o-calendar-x-mark style="width:48px;height:48px;color:#d9d2c9;margin:0 auto 12px;" />
+        <div style="font-size:48px;text-align:center;margin-bottom:12px;">📅</div>
         <p>Sem horários livres para este período.</p>
     </div>
 @else
