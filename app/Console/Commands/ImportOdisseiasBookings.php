@@ -47,15 +47,13 @@ class ImportOdisseiasBookings extends Command
 
     protected $description = 'Importa clientes + marcações do CSV de gap Odisseias (reservas ausentes do Zappy)';
 
-    /** Ajusta depois de veres o relatório "Serviços não encontrados" no dry-run.
-     *  Sugestões com base na descrição "Inclui" de cada produto Odisseias:
-     */
+    /** Confirmado por Gualter em 2026-07-02 contra a lista real de `services` (via tinker). */
     private array $serviceNameOverrides = [
-        // 'Massagem com Pedras Quentes ou Velas' => "Relaxamento 60'",
-        // 'Massagem Relaxante com Pedras ou Velas Quentes' => "Relaxamento 60'",
-        // 'Massagem Localizada' => "Relaxamento 60'",
-        // 'Limpeza de Pele' => 'Limpeza Pele',
-        // 'Massagem Relaxante para Grávida' => 'Grávidas',
+        'Massagem com Pedras Quentes ou Velas' => "Relaxamento 60'",
+        'Massagem Relaxante com Pedras ou Velas Quentes' => "Relaxamento 60'",
+        'Massagem Localizada' => "Relaxamento 60'",
+        'Limpeza de Pele' => 'Limpeza Pele',
+        'Massagem Relaxante para Grávida' => 'Grávidas',
     ];
 
     public function handle(): int
