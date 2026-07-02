@@ -2,6 +2,7 @@
 namespace App\Filament\Pages;
 
 use App\Filament\Widgets\AugustaDashboardStats;
+use App\Filament\Widgets\OdisseiasRevenueStats;
 use App\Filament\Widgets\TodayAppointmentsWidget;
 use App\Filament\Widgets\WeeklyByProfessionalWidget;
 use App\Filament\Widgets\RevenueByWeekChart;
@@ -21,6 +22,7 @@ class Dashboard extends BaseDashboard
         if ($role === 'admin') {
             return [
                 AugustaDashboardStats::class,
+                OdisseiasRevenueStats::class,
                 TodayAppointmentsWidget::class,
                 WeeklyByProfessionalWidget::class,
                 RevenueByWeekChart::class,

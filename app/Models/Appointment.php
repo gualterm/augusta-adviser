@@ -22,6 +22,7 @@ class Appointment extends Model
         'status',
         'price',
         'notes',
+        'source',
     ];
 
     public function client(): BelongsTo
