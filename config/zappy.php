@@ -59,5 +59,8 @@ return [
     */
     'provider_overrides' => [
         'Marta  Macedo' => 'Marta Macedo',
+        // "Inês Sousa" (Zappy) já corresponde diretamente a employees.name
+        // desde que a Marta renomeou "Inês" -> "Inês Sousa" em 2026-07-03
+        // (PROD e, após cópia da tabela, também DEV) — sem override necessário.
     ],
 ];

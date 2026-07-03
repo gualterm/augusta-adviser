@@ -1,6 +1,7 @@
 <?php
 namespace App\Http\Controllers\Portal;
 use App\Http\Controllers\Controller;
+use App\Models\BusinessHour;
 use App\Models\Employee;
 use App\Models\EmployeeCommission;
 use App\Models\Service;
@@ -84,6 +85,78 @@ class ClientPortalController extends Controller
         if ($eligibleIds->isNotEmpty()) $q->whereIn('id', $eligibleIds);
         return $q->orderBy('name')->get();
     }
+
+    /**
+     * Intervalos de funcionamento da loja num dia (respeitando fecho e o
+     * intervalo de almoço). Devolve [] se a loja estiver fechada nesse dia.
+     * Pedido da Marta (2026-07-03): as marcações não podem ultrapassar a
+     * hora de fecho nem cair dentro do almoço.
+     *
+     * @return array<int, array{start: Carbon, end: Carbon}>
+     */
+    private function getOpenIntervals(string $date): array
+    {
+        $dayOfWeek = Carbon::parse($date)->dayOfWeek; // 0=Domingo ... 6=Sábado, igual a BusinessHour::DAY_NAMES
+        $bh = BusinessHour::where('day_of_week', $dayOfWeek)->first();
+
+        if (!$bh || !$bh->is_open) {
+            return [];
+        }
+
+        $open  = Carbon::parse("$date {$bh->open_time}");
+        $close = Carbon::parse("$date {$bh->close_time}");
+
+        if ($bh->lunch_start && $bh->lunch_end) {
+            $lunchStart = Carbon::parse("$date {$bh->lunch_start}");
+            $lunchEnd   = Carbon::parse("$date {$bh->lunch_end}");
+
+            return [
+                ['start' => $open, 'end' => $lunchStart],
+                ['start' => $lunchEnd, 'end' => $close],
+            ];
+        }
+
+        return [['start' => $open, 'end' => $close]];
+    }
+
+    /**
+     * Classifica um intervalo [startTime, endTime) face ao horário da loja
+     * nesse dia:
+     * - 'closed' => antes da abertura, depois do fecho, ou dia sem serviço — recusar.
+     * - 'lunch'  => sobrepõe o intervalo de almoço — aceitar mas sinalizar
+     *               para a Marta confirmar ou remarcar (pedido da Marta,
+     *               2026-07-03: não bloquear, só avisar).
+     * - 'ok'     => dentro do horário normal de funcionamento.
+     */
+    private function classifyBookingWindow(string $date, string $startTime, string $endTime): string
+    {
+        $dayOfWeek = Carbon::parse($date)->dayOfWeek;
+        $bh = BusinessHour::where('day_of_week', $dayOfWeek)->first();
+
+        if (!$bh || !$bh->is_open) {
+            return 'closed';
+        }
+
+        $start = Carbon::parse("$date $startTime");
+        $end   = Carbon::parse("$date $endTime");
+        $open  = Carbon::parse("$date {$bh->open_time}");
+        $close = Carbon::parse("$date {$bh->close_time}");
+
+        if ($start->lt($open) || $end->gt($close)) {
+            return 'closed';
+        }
+
+        if ($bh->lunch_start && $bh->lunch_end) {
+            $lunchStart = Carbon::parse("$date {$bh->lunch_start}");
+            $lunchEnd   = Carbon::parse("$date {$bh->lunch_end}");
+            if ($start->lt($lunchEnd) && $end->gt($lunchStart)) {
+                return 'lunch';
+            }
+        }
+
+        return 'ok';
+    }
+
     private function findFirstSlotForPromo(Promotion $promo): ?array
     {
         $service = Service::find($promo->service_id);
@@ -102,21 +175,23 @@ class ClientPortalController extends Controller
 
         for ($date = $start->copy(); $date->lte($end); $date->addDay()) {
             $dateStr = $date->format('Y-m-d');
-            $cursor  = Carbon::createFromFormat('Y-m-d H:i', "$dateStr 09:00");
-            $limit   = Carbon::createFromFormat('Y-m-d H:i', "$dateStr 19:30");
-            while ($cursor->copy()->addMinutes($duration)->lte($limit)) {
-                if ($cursor->gte($now)) {
-                    $s = $cursor->format('H:i');
-                    $e = $cursor->copy()->addMinutes($duration)->format('H:i');
-                    foreach ($employees as $emp) {
-                        if (AppointmentConflictService::employeeHasConflict($emp->id, $dateStr, $s, $e)) continue;
-                        if (!empty($equipmentIds) && AppointmentConflictService::equipmentHasConflict($equipmentIds, $dateStr, $s, $e)) continue;
-                        $ws = AppointmentConflictService::findAlternativeWorkstation($service->workstation_type, $dateStr, $s, $e);
-                        if (!$ws) continue;
-                        return ['date' => $dateStr, 'time' => $s];
+            foreach ($this->getOpenIntervals($dateStr) as $interval) {
+                $cursor = $interval['start']->copy();
+                $limit  = $interval['end'];
+                while ($cursor->copy()->addMinutes($duration)->lte($limit)) {
+                    if ($cursor->gte($now)) {
+                        $s = $cursor->format('H:i');
+                        $e = $cursor->copy()->addMinutes($duration)->format('H:i');
+                        foreach ($employees as $emp) {
+                            if (AppointmentConflictService::employeeHasConflict($emp->id, $dateStr, $s, $e)) continue;
+                            if (!empty($equipmentIds) && AppointmentConflictService::equipmentHasConflict($equipmentIds, $dateStr, $s, $e)) continue;
+                            $ws = AppointmentConflictService::findAlternativeWorkstation($service->workstation_type, $dateStr, $s, $e);
+                            if (!$ws) continue;
+                            return ['date' => $dateStr, 'time' => $s];
+                        }
                     }
+                    $cursor->addMinutes(30);
                 }
-                $cursor->addMinutes(30);
             }
         }
         return null;
@@ -139,21 +214,22 @@ class ClientPortalController extends Controller
         $duration = $service->duration_minutes;
         $preferred = Carbon::createFromFormat('H:i', substr($request->preferred_time, 0, 5));
 
-        $openHour  = 9;
-        $closeTime = '19:30';
-        $interval  = 30; // minutos entre slots
+        $interval = 30; // minutos entre slots
 
-        // Candidatos: todos os slots do dia ordenados por distância à hora preferida
+        // Candidatos: todos os slots do dia (dentro do horário real da loja,
+        // excluindo o almoço) ordenados por distância à hora preferida
         $slots = [];
-        $cursor = Carbon::createFromFormat('Y-m-d H:i', "$date 09:00");
-        $limit  = Carbon::createFromFormat('Y-m-d H:i', "$date $closeTime");
-        $now    = Carbon::now()->addMinutes(30);
+        $now   = Carbon::now()->addMinutes(30);
 
-        while ($cursor->copy()->addMinutes($duration)->lte($limit)) {
-            if ($cursor->gte($now)) {
-                $slots[] = $cursor->format('H:i');
+        foreach ($this->getOpenIntervals($date) as $openInterval) {
+            $cursor = $openInterval['start']->copy();
+            $limit  = $openInterval['end'];
+            while ($cursor->copy()->addMinutes($duration)->lte($limit)) {
+                if ($cursor->gte($now)) {
+                    $slots[] = $cursor->format('H:i');
+                }
+                $cursor->addMinutes($interval);
             }
-            $cursor->addMinutes($interval);
         }
 
         if (empty($slots)) {
@@ -216,7 +292,6 @@ class ClientPortalController extends Controller
         $service  = Service::find($request->service_id);
         $date     = $request->date;
         $duration = $service->duration_minutes;
-        $closeTime = '19:30';
         $interval  = 30;
         $now = Carbon::now()->addMinutes(30);
 
@@ -227,23 +302,25 @@ class ClientPortalController extends Controller
         $equipmentIds = $service->equipment->pluck('id')->all();
 
         $available = [];
-        $cursor = Carbon::createFromFormat('Y-m-d H:i', "$date 09:00");
-        $limit  = Carbon::createFromFormat('Y-m-d H:i', "$date $closeTime");
 
-        while ($cursor->copy()->addMinutes($duration)->lte($limit)) {
-            if ($cursor->gte($now)) {
-                $startTime = $cursor->format('H:i');
-                $endTime   = $cursor->copy()->addMinutes($duration)->format('H:i');
-                foreach ($employees as $employee) {
-                    if (AppointmentConflictService::employeeHasConflict($employee->id, $date, $startTime, $endTime)) continue;
-                    if (!empty($equipmentIds) && AppointmentConflictService::equipmentHasConflict($equipmentIds, $date, $startTime, $endTime)) continue;
-                    $workstation = AppointmentConflictService::findAlternativeWorkstation($service->workstation_type, $date, $startTime, $endTime);
-                    if (!$workstation) continue;
-                    $available[] = $startTime;
-                    break;
+        foreach ($this->getOpenIntervals($date) as $openInterval) {
+            $cursor = $openInterval['start']->copy();
+            $limit  = $openInterval['end'];
+            while ($cursor->copy()->addMinutes($duration)->lte($limit)) {
+                if ($cursor->gte($now)) {
+                    $startTime = $cursor->format('H:i');
+                    $endTime   = $cursor->copy()->addMinutes($duration)->format('H:i');
+                    foreach ($employees as $employee) {
+                        if (AppointmentConflictService::employeeHasConflict($employee->id, $date, $startTime, $endTime)) continue;
+                        if (!empty($equipmentIds) && AppointmentConflictService::equipmentHasConflict($equipmentIds, $date, $startTime, $endTime)) continue;
+                        $workstation = AppointmentConflictService::findAlternativeWorkstation($service->workstation_type, $date, $startTime, $endTime);
+                        if (!$workstation) continue;
+                        $available[] = $startTime;
+                        break;
+                    }
                 }
+                $cursor->addMinutes($interval);
             }
-            $cursor->addMinutes($interval);
         }
 
         return response()->json($available);
@@ -260,6 +337,13 @@ class ClientPortalController extends Controller
         $service   = Service::find($data['service_id']);
         $startTime = Carbon::parse($data['appointment_time'])->format('H:i');
         $endTime   = Carbon::parse($startTime)->addMinutes($service->duration_minutes)->format('H:i');
+
+        $bookingWindow = $this->classifyBookingWindow($data['appointment_date'], $startTime, $endTime);
+        if ($bookingWindow === 'closed') {
+            return back()
+                ->withErrors(['appointment_time' => 'Esse horário está fora do horário da loja. Por favor escolhe outra hora.'])
+                ->withInput();
+        }
 
         // Usar sistema de áreas (prioridade) para obter profissionais elegíveis
         $employees = $this->getEmployeesForService($service);
@@ -300,6 +384,9 @@ class ClientPortalController extends Controller
                 'appointment_time' => $startTime,
                 'end_time'         => $endTime,
                 'status'           => 'scheduled',
+                'notes'            => $bookingWindow === 'lunch'
+                    ? 'Marcação feita dentro do horário de almoço — confirmar com a Marta ou remarcar.'
+                    : null,
                 'price'            => (function() use ($request, $service) {
                     $price = $service->price;
                     if ($request->filled('promo_id')) {
@@ -355,6 +442,11 @@ class ClientPortalController extends Controller
         $startTime = \Carbon\Carbon::parse($data['appointment_time'])->format('H:i');
         $endTime   = \Carbon\Carbon::parse($startTime)->addMinutes($service->duration_minutes)->format('H:i');
 
+        $bookingWindow = $this->classifyBookingWindow($data['appointment_date'], $startTime, $endTime);
+        if ($bookingWindow === 'closed') {
+            return back()->withErrors(['appointment_time' => 'Esse horário está fora do horário da loja.']);
+        }
+
         // Verificar disponibilidade (ignora a própria marcação)
         if (\App\Services\AppointmentConflictService::employeeHasConflict(
             $appointment->employee_id, $data['appointment_date'], $startTime, $endTime, $appointment->id
@@ -375,6 +467,9 @@ class ClientPortalController extends Controller
             'end_time'         => $endTime,
             'workstation_id'   => $workstation->id,
             'reschedule_count' => 1,
+            'notes'            => $bookingWindow === 'lunch'
+                ? trim(($appointment->notes ? $appointment->notes.' ' : '').'Remarcação feita dentro do horário de almoço — confirmar com a Marta.')
+                : $appointment->notes,
         ]);
 
         return redirect()->route('portal.dashboard')->with('booking_success', true);
