@@ -134,7 +134,13 @@ class SyncOdisseiasBookings extends Command
                 // alterações reais, o que confundia o relatório do sync.
                 $mudou = false;
                 foreach ($comparableAttrs as $key => $value) {
-                    if ((string) $existing->{$key} !== (string) $value) {
+                    // appointment_date tem cast 'date' (Carbon) — (string) direto
+                    // inclui a hora ("...00:00:00") e nunca batia certo com a data
+                    // simples vinda do portal, fazia parecer que mudava sempre.
+                    $current = $key === 'appointment_date'
+                        ? $existing->appointment_date?->toDateString()
+                        : $existing->{$key};
+                    if ((string) $current !== (string) $value) {
                         $mudou = true;
                         break;
                     }
