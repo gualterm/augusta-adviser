@@ -28,7 +28,7 @@ class ListExternalBookings extends ListRecords
                         ->title('Sincronização concluída')
                         ->body($output)
                         ->success()
-                        ->duration(8000)
+                        ->persistent()
                         ->send();
                 }),
 

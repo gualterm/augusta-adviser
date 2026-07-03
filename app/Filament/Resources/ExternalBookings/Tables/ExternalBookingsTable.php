@@ -29,22 +29,23 @@ class ExternalBookingsTable
                 default => '!bg-success-50',
             })
             ->columns([
-                TextColumn::make('channel')
-                    ->label('Canal')
-                    ->badge()
-                    ->formatStateUsing(fn (string $state): string => ucfirst($state)),
-                TextColumn::make('reserva_number')
-                    ->label('Nº Reserva')
-                    ->searchable()
-                    ->copyable(),
-                TextColumn::make('voucher_number')
-                    ->label('Nº Voucher')
-                    ->searchable()
-                    ->toggleable(),
                 TextColumn::make('client_name')
                     ->label('Cliente')
                     ->searchable()
                     ->sortable(),
+                // Estado "na agenda?" logo a seguir ao cliente, de propósito — é a
+                // pergunta mais importante ("isto já foi integrado ou não?") e não
+                // deve exigir scroll horizontal para se ver.
+                TextColumn::make('appointment_id')
+                    ->label('Na agenda?')
+                    ->badge()
+                    ->formatStateUsing(fn (?int $state): string => $state ? 'Já na agenda' : 'Por confirmar')
+                    ->color(fn (?int $state): string => $state ? 'gray' : 'success'),
+                TextColumn::make('conflict_note')
+                    ->label('Conflito / aviso')
+                    ->wrap()
+                    ->color('danger')
+                    ->placeholder('—'),
                 TextColumn::make('appointment_date')
                     ->label('Data')
                     ->date('d/m/Y')
@@ -54,7 +55,7 @@ class ExternalBookingsTable
                     ->time('H:i')
                     ->sortable(),
                 TextColumn::make('external_status')
-                    ->label('Estado')
+                    ->label('Estado Odisseias')
                     ->badge()
                     ->color(fn (string $state): string => match ($state) {
                         'CONFIRMADA' => 'success',
@@ -67,17 +68,20 @@ class ExternalBookingsTable
                     ->money('EUR')
                     ->sortable()
                     ->summarize(Sum::make()->label('Total NET')->money('EUR')),
-                TextColumn::make('conflict_note')
-                    ->label('Conflito / aviso')
-                    ->wrap()
-                    ->color('danger')
-                    ->placeholder('—')
-                    ->toggleable(),
-                TextColumn::make('appointment_id')
-                    ->label('Na agenda?')
+                TextColumn::make('channel')
+                    ->label('Canal')
                     ->badge()
-                    ->formatStateUsing(fn (?int $state): string => $state ? 'Confirmada' : 'Por confirmar')
-                    ->color(fn (?int $state): string => $state ? 'gray' : 'success'),
+                    ->formatStateUsing(fn (string $state): string => ucfirst($state))
+                    ->toggleable(),
+                TextColumn::make('reserva_number')
+                    ->label('Nº Reserva')
+                    ->searchable()
+                    ->copyable()
+                    ->toggleable(),
+                TextColumn::make('voucher_number')
+                    ->label('Nº Voucher')
+                    ->searchable()
+                    ->toggleable(),
             ])
             ->filters([
                 SelectFilter::make('channel')
@@ -135,6 +139,7 @@ class ExternalBookingsTable
                         Notification::make()
                             ->title('Marcação cancelada na agenda da Augusta')
                             ->success()
+                            ->persistent()
                             ->send();
                     }),
             ])
@@ -174,6 +179,7 @@ class ExternalBookingsTable
                             ->body($skippedConflict ? "{$skippedConflict} ignorada(s) por terem conflito de horário — resolve à mão." : null)
                             ->warning($skippedConflict > 0 || count($errors) > 0)
                             ->success($skippedConflict === 0 && count($errors) === 0)
+                            ->persistent()
                             ->send();
 
                         if ($errors) {
@@ -181,6 +187,7 @@ class ExternalBookingsTable
                                 ->title('Erros ao confirmar')
                                 ->body(implode("\n", $errors))
                                 ->danger()
+                                ->persistent()
                                 ->send();
                         }
                     }),
@@ -199,12 +206,14 @@ class ExternalBookingsTable
             Notification::make()
                 ->title('Marcação confirmada para a agenda')
                 ->success()
+                ->persistent()
                 ->send();
         } else {
             Notification::make()
                 ->title('Não foi possível confirmar')
                 ->body($result['error'])
                 ->danger()
+                ->persistent()
                 ->send();
         }
     }

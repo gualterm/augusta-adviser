@@ -26,6 +26,14 @@ class AppointmentsTable
                     ->label('Cliente')
                     ->searchable()
                     ->sortable(),
+                TextColumn::make('source')
+                    ->label('Origem')
+                    ->badge()
+                    ->color(fn (?string $state): string => match ($state) {
+                        'Odisseias' => 'warning',
+                        default => 'gray',
+                    })
+                    ->sortable(),
                 TextColumn::make('employee.name')
                     ->label('Profissional')
                     ->searchable()
@@ -65,6 +73,12 @@ class AppointmentsTable
                         'confirmed' => 'Confirmada',
                         'completed' => 'Concluída',
                         'cancelled' => 'Cancelada',
+                    ]),
+                SelectFilter::make('source')
+                    ->label('Origem')
+                    ->options([
+                        'Direto' => 'Direto',
+                        'Odisseias' => 'Odisseias',
                     ]),
             ])
             ->recordActions([

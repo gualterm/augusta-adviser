@@ -54,24 +54,50 @@ class ExternalBookingConfirmer
         return Client::create($data);
     }
 
+    /**
+     * O produto vem em formatos INCONSISTENTES vindos da Odisseias — descoberto
+     * em 2026-07-03 ao ver uma falha real (Tania Lopes): normalmente é
+     * "Unidade | Nome do serviço | N Pessoas" (3 partes), mas por vezes vem só
+     * "Nome do serviço | Unidade" (2 partes, ordem diferente, sem contagem de
+     * pessoas). Assumir uma posição fixa (ex.: "o 2º segmento") falha nesses
+     * casos. Em vez disso: tenta o texto completo primeiro, depois cada
+     * segmento separado por "|", ignorando os que claramente são a unidade
+     * (só existe uma, "Augusta Beauty Advisor") ou a contagem de pessoas.
+     */
     public function resolveService(?string $productName): ?Service
     {
         if (!$productName) {
             return null;
         }
 
-        // O produto vem como "Unidade | Nome do serviço | N Pessoas" (3 partes,
-        // confirmado ao vivo em 2026-07-03) — só o segmento do meio interessa
-        // para o mapeamento, os outros dois são a unidade e a lotação.
-        $parts = array_map('trim', explode('|', $productName));
-        $name = $parts[1] ?? $productName;
-
         $overrides = config('odisseias.service_overrides', []);
-        $lookupName = $overrides[$name] ?? $name;
-
         $normalize = fn (?string $s) => preg_replace('/\s+/', ' ', rtrim(mb_strtolower(trim((string) $s)), '.'));
+        $services = Service::all();
 
-        return Service::all()->first(fn ($s) => $normalize($s->name) === $normalize($lookupName));
+        $tryMatch = function (string $candidate) use ($overrides, $normalize, $services): ?Service {
+            $lookup = $overrides[$candidate] ?? $candidate;
+            return $services->first(fn ($s) => $normalize($s->name) === $normalize($lookup));
+        };
+
+        if ($match = $tryMatch(trim($productName))) {
+            return $match;
+        }
+
+        $unitName = 'Augusta Beauty Advisor'; // única unidade da Marta na Odisseias por agora
+        foreach (explode('|', $productName) as $segment) {
+            $segment = trim($segment);
+            if ($segment === '' || $normalize($segment) === $normalize($unitName)) {
+                continue;
+            }
+            if (preg_match('/^\d+\s*pessoa/iu', $segment)) {
+                continue;
+            }
+            if ($match = $tryMatch($segment)) {
+                return $match;
+            }
+        }
+
+        return null;
     }
 
     /**
