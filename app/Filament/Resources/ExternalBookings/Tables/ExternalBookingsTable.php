@@ -56,12 +56,16 @@ class ExternalBookingsTable
                     ->label('Conflito / aviso')
                     ->formatStateUsing(fn (?string $state, Model $record): string => match (true) {
                         $state === null => '—',
+                        // Já teve um aviso mas foi entretanto resolvido (cancelado,
+                        // confirmado com override, ignorado) — não é mais um alerta
+                        // ativo, só um registo histórico do que aconteceu.
+                        !$record->has_conflict => '✓ Resolvido',
                         str_contains($state, 'Choca com') => '⚠ Conflito de horário',
                         str_contains($state, 'Anulada na Odisseias') => '⚠ Anulada, já na agenda',
                         default => '⚠ Aviso',
                     })
                     ->tooltip(fn (?string $state): ?string => $state)
-                    ->color('danger')
+                    ->color(fn (?string $state, Model $record): string => $state !== null && !$record->has_conflict ? 'success' : 'danger')
                     ->placeholder('—'),
                 TextColumn::make('appointment_date')
                     ->label('Data')
