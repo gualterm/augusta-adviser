@@ -25,9 +25,9 @@ use GuzzleHttp\Cookie\CookieJar;
  *     cancelamento e Preço NET — nenhum destes campos vem na lista.
  *
  * Não precisa de browser/headless: só pedidos HTTP com cookie jar.
- * Credenciais NUNCA hardcoded — vêm de config('services.odisseias'), que lê
- * do .env de cada container (mesma regra usada para SMTP e outros
- * segredos deste projeto).
+ * Credenciais NUNCA hardcoded — vêm de config('odisseias'), que lê do .env
+ * de cada container (mesma regra usada para SMTP e outros segredos deste
+ * projeto). Ver config/odisseias.php.
  */
 class OdisseiasClient
 {
@@ -37,7 +37,7 @@ class OdisseiasClient
     public function __construct(?string $baseUrl = null)
     {
         $this->http = new Client([
-            'base_uri' => $baseUrl ?? config('services.odisseias.base_url', 'https://parceiros.odisseias.com'),
+            'base_uri' => $baseUrl ?? config('odisseias.base_url', 'https://parceiros.odisseias.com'),
             'cookies' => new CookieJar(),
             'timeout' => 30,
             'headers' => [
@@ -49,8 +49,8 @@ class OdisseiasClient
 
     public function login(?string $username = null, ?string $password = null): bool
     {
-        $username ??= config('services.odisseias.username');
-        $password ??= config('services.odisseias.password');
+        $username ??= config('odisseias.username');
+        $password ??= config('odisseias.password');
 
         if (!$username || !$password) {
             throw new \RuntimeException('Credenciais da Odisseias não configuradas (ODISSEIAS_USERNAME / ODISSEIAS_PASSWORD no .env).');
