@@ -109,11 +109,19 @@ class ExternalBookingsTable
                     ->query(fn (Builder $query): Builder => $query->where('has_conflict', true))
                     ->toggle(),
                 // Ligado por omissão: uma vez confirmada, cancelada ou ignorada, a
-                // reserva já foi tratada e não precisa de continuar a aparecer —
-                // desliga este filtro para ver o histórico completo (30 reservas).
+                // reserva já foi tratada e não precisa de continuar a aparecer.
+                // Complementa também as anuladas que NUNCA chegaram a entrar na
+                // agenda (ex.: Tania Lopes) — não há nada para decidir nelas, por
+                // isso escondem-se tal como as já tratadas; a exceção é uma
+                // anulada que JÁ estava na agenda (has_conflict=true), essa
+                // continua visível porque precisa da ação "Cancelar marcação".
+                // Desliga este filtro para ver o histórico completo (30 reservas).
                 Filter::make('por_tratar')
-                    ->label('Esconder já tratadas (confirmadas/ignoradas)')
-                    ->query(fn (Builder $query): Builder => $query->whereNull('appointment_id')->whereNull('ignored_at'))
+                    ->label('Esconder já tratadas / sem ação possível')
+                    ->query(fn (Builder $query): Builder => $query
+                        ->whereNull('appointment_id')
+                        ->whereNull('ignored_at')
+                        ->where(fn (Builder $q) => $q->where('external_status', '!=', 'ANULADA')->orWhere('has_conflict', true)))
                     ->toggle()
                     ->default(true),
             ])
@@ -122,7 +130,10 @@ class ExternalBookingsTable
                     ->label('Confirmar')
                     ->icon('heroicon-o-check')
                     ->color('success')
-                    ->visible(fn (Model $record): bool => !$record->has_conflict && $record->appointment_id === null && $record->ignored_at === null)
+                    ->visible(fn (Model $record): bool => !$record->has_conflict
+                        && $record->appointment_id === null
+                        && $record->ignored_at === null
+                        && $record->external_status !== 'ANULADA')
                     ->requiresConfirmation()
                     ->action(function (Model $record) {
                         static::confirmRecord($record);
@@ -213,7 +224,7 @@ class ExternalBookingsTable
                         $errors = [];
 
                         foreach ($records as $record) {
-                            if ($record->appointment_id !== null || $record->ignored_at !== null) {
+                            if ($record->appointment_id !== null || $record->ignored_at !== null || $record->external_status === 'ANULADA') {
                                 continue;
                             }
                             if ($record->has_conflict) {

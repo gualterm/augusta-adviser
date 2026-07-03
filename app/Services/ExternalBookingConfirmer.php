@@ -154,6 +154,10 @@ class ExternalBookingConfirmer
             return ['appointment' => $booking->appointment, 'error' => null];
         }
 
+        if ($booking->external_status === 'ANULADA') {
+            return ['appointment' => null, 'error' => 'Reserva anulada no canal de origem — não faz sentido confirmá-la para a agenda.'];
+        }
+
         $employee ??= config('odisseias.default_employee_id') ? Employee::find(config('odisseias.default_employee_id')) : Employee::first();
         $workstation ??= config('odisseias.default_workstation_id') ? Workstation::find(config('odisseias.default_workstation_id')) : Workstation::where('active', true)->first();
 
