@@ -152,6 +152,16 @@ class SyncOdisseiasBookings extends Command
                 continue; // já confirmada, nada mais a fazer
             }
 
+            // Reserva anulada e nunca esteve na agenda — não há nada para confirmar
+            // nem para chocar, ignora sem sinalizar (evita ruído de "conflitos"
+            // fantasma contra reservas que já não vão a lado nenhum).
+            if ($estado === 'ANULADA') {
+                if ($existing->has_conflict) {
+                    $existing->update(['has_conflict' => false, 'conflict_note' => null]);
+                }
+                continue;
+            }
+
             // Esta reserva pode já ter sido importada manualmente antes de o sync
             // existir (ex.: o comando odisseias:import correu em 2026-07-02 para o
             // "gap" inicial) — essa marcação guarda o nº de reserva dentro de
