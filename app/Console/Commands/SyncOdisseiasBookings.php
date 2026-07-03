@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Models\Appointment;
 use App\Models\Employee;
 use App\Models\ExternalBooking;
 use App\Models\OdisseiasSetting;
@@ -84,6 +85,7 @@ class SyncOdisseiasBookings extends Command
         $novas = 0;
         $atualizadas = 0;
         $confirmadasAuto = 0;
+        $ligadasAJaExistentes = 0;
         $sinalizadasConflito = 0;
         $sinalizadasAnulada = 0;
         $erros = [];
@@ -150,6 +152,23 @@ class SyncOdisseiasBookings extends Command
                 continue; // já confirmada, nada mais a fazer
             }
 
+            // Esta reserva pode já ter sido importada manualmente antes de o sync
+            // existir (ex.: o comando odisseias:import correu em 2026-07-02 para o
+            // "gap" inicial) — essa marcação guarda o nº de reserva dentro de
+            // `notes`. Se encontrarmos essa marcação, é a MESMA reserva, não um
+            // conflito: ligamos em vez de sinalizar ou tentar criar outra vez.
+            $jaImportada = Appointment::where('notes', 'like', "%{$existing->reserva_number}%")->first();
+            if ($jaImportada) {
+                $existing->update([
+                    'appointment_id' => $jaImportada->id,
+                    'confirmed_at' => $jaImportada->created_at,
+                    'has_conflict' => false,
+                    'conflict_note' => null,
+                ]);
+                $ligadasAJaExistentes++;
+                continue;
+            }
+
             $conflictNote = $confirmer->detectConflict($existing, $employee, $workstation);
             $existing->update([
                 'has_conflict' => $conflictNote !== null,
@@ -176,6 +195,7 @@ class SyncOdisseiasBookings extends Command
         $this->line("  Reservas novas: {$novas}");
         $this->line("  Reservas atualizadas: {$atualizadas}");
         $this->line("  Confirmadas automaticamente para a agenda: {$confirmadasAuto}");
+        $this->line("  Ligadas a marcações já existentes (importadas antes do sync existir): {$ligadasAJaExistentes}");
         $this->line("  Sinalizadas com conflito de horário: {$sinalizadasConflito}");
         $this->line("  Sinalizadas: anuladas na Odisseias já na agenda: {$sinalizadasAnulada}");
 
