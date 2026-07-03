@@ -46,12 +46,11 @@ return [
         // categoria do Zappy diga "Laser" ou "Cera" (nomes reais desde
         // 2026-07-03: "Laser - X" / "Cera - X").
 
-        // Confirmado por Gualter (2026-07-03): "Tamanho S/M (sobre avaliação)"
-        // é depilação (serve tanto para Cera como Laser, decide-se pela
-        // categoria da própria linha, ver ZappyImportService) — S = Zona
-        // Pequena, M = Zona Grande (não confundir com o "M" de Média).
-        'Tamanho S (sobre avaliação)' => 'Depilação Mulher Zona Pequena',
-        'Tamanho M (sobre avaliação)' => 'Depilação Mulher Zona Grande',
+        // "Tamanho S/M (sobre avaliação)" tem categoria "Remoção Tatuagem" no
+        // Zappy (confirmado no export real) — não é depilação, é remoção de
+        // tatuagem por tamanho. Mapeia direto para o catálogo (grupo Tatuagem).
+        'Tamanho S (sobre avaliação)' => 'Remoção S',
+        'Tamanho M (sobre avaliação)' => 'Remoção M',
     ],
 
     /*
