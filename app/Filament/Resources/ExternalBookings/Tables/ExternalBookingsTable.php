@@ -112,6 +112,31 @@ class ExternalBookingsTable
                     ->action(function (Model $record) {
                         static::confirmRecord($record);
                     }),
+                Action::make('cancelar_marcacao')
+                    ->label('Cancelar marcação')
+                    ->icon('heroicon-o-x-circle')
+                    ->color('danger')
+                    ->visible(fn (Model $record): bool => $record->external_status === 'ANULADA'
+                        && $record->appointment_id !== null
+                        && $record->appointment?->status !== 'cancelled')
+                    ->requiresConfirmation()
+                    ->modalHeading('Cancelar marcação na agenda')
+                    ->modalDescription(fn (Model $record): string => "Inconsistência detetada: a reserva {$record->reserva_number} ({$record->client_name}) foi anulada no portal da Odisseias, mas a marcação #{$record->appointment_id} "
+                        . '(' . $record->appointment_date->format('d/m/Y') . ' ' . substr($record->appointment_time, 0, 5) . ') '
+                        . 'continua agendada na agenda da Augusta. O lógico é cancelá-la também aqui — a marcação não é apagada, só passa a estado "Cancelada".')
+                    ->modalSubmitActionLabel('Sim, cancelar na agenda')
+                    ->action(function (Model $record) {
+                        $record->appointment?->update(['status' => 'cancelled']);
+                        $record->update([
+                            'has_conflict' => false,
+                            'conflict_note' => 'Anulada na Odisseias — marcação cancelada na agenda em ' . now()->format('d/m/Y H:i') . '.',
+                        ]);
+
+                        Notification::make()
+                            ->title('Marcação cancelada na agenda da Augusta')
+                            ->success()
+                            ->send();
+                    }),
             ])
             ->toolbarActions([
                 BulkAction::make('confirmar_selecionadas')
