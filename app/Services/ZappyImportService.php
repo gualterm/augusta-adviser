@@ -139,7 +139,7 @@ class ZappyImportService
                 // desde 2026-07-03 os serviços têm nomes únicos ("Cera - X" /
                 // "Laser - X"), decidido pela categoria do Zappy (que diz
                 // "Depilação Laser Díodo" ou "Depilação Cera Multidirecional").
-                if (preg_match('/^Depila[çc][ãa]o\s+(Homem|Mulher)\s+Zona\s+(Grande|M[ée]dia|Pequena)\.?$/iu', $serviceRaw, $m)) {
+                if (preg_match('/^Depila[çc][ãa]o\s+(Homem|Mulher)\s+Zona\s+(Grande|M[ée]dia|Pequena)\.?$/iu', $serviceLookup, $m)) {
                     if (stripos($categoryRaw, 'laser') !== false) {
                         $serviceLookup = "Laser - {$m[1]} Zona {$m[2]}";
                     } elseif (stripos($categoryRaw, 'cera') !== false) {
