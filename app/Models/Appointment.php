@@ -49,4 +49,9 @@ class Appointment extends Model
     {
         return $this->belongsTo(Service::class);
     }
+
+    public function externalBooking(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(ExternalBooking::class);
+    }
 }

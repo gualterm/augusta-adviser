@@ -246,10 +246,10 @@
 @if($viewMode === 'week')
     @php $weekly = $this->getWeeklyTimeline(); @endphp
     <div class="ra-week-nav">
-        <button wire:click="$set('weekOffset', $weekOffset - 1)">← Semana anterior</button>
+        <button wire:click="previousWeek">← Semana anterior</button>
         <span class="ra-week-label">{{ $weekly['weekStartLabel'] }}</span>
-        <button wire:click="$set('weekOffset', $weekOffset + 1)">Semana seguinte →</button>
-        <button wire:click="$set('weekOffset', 0)" style="color:#9b8a7c;font-size:12px;margin-left:6px;">hoje</button>
+        <button wire:click="nextWeek">Semana seguinte →</button>
+        <button wire:click="thisWeek" style="color:#9b8a7c;font-size:12px;margin-left:6px;">hoje</button>
     </div>
 
     <div style="overflow-x:auto;">

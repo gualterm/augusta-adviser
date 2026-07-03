@@ -1,0 +1,186 @@
+<?php
+
+namespace App\Filament\Resources\ExternalBookings\Tables;
+
+use App\Models\Employee;
+use App\Models\Workstation;
+use App\Services\ExternalBookingConfirmer;
+use Filament\Actions\Action;
+use Filament\Actions\BulkAction;
+use Filament\Notifications\Notification;
+use Filament\Tables\Columns\Summarizers\Sum;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\Filter;
+use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Model;
+
+class ExternalBookingsTable
+{
+    public static function configure(Table $table): Table
+    {
+        return $table
+            ->defaultSort('appointment_date')
+            ->recordClasses(fn (Model $record): string => match (true) {
+                $record->has_conflict => '!bg-danger-50',
+                $record->appointment_id !== null => '!bg-gray-100 opacity-70',
+                default => '!bg-success-50',
+            })
+            ->columns([
+                TextColumn::make('channel')
+                    ->label('Canal')
+                    ->badge()
+                    ->formatStateUsing(fn (string $state): string => ucfirst($state)),
+                TextColumn::make('reserva_number')
+                    ->label('Nº Reserva')
+                    ->searchable()
+                    ->copyable(),
+                TextColumn::make('voucher_number')
+                    ->label('Nº Voucher')
+                    ->searchable()
+                    ->toggleable(),
+                TextColumn::make('client_name')
+                    ->label('Cliente')
+                    ->searchable()
+                    ->sortable(),
+                TextColumn::make('appointment_date')
+                    ->label('Data')
+                    ->date('d/m/Y')
+                    ->sortable(),
+                TextColumn::make('appointment_time')
+                    ->label('Hora')
+                    ->time('H:i')
+                    ->sortable(),
+                TextColumn::make('external_status')
+                    ->label('Estado')
+                    ->badge()
+                    ->color(fn (string $state): string => match ($state) {
+                        'CONFIRMADA' => 'success',
+                        'REALIZADA' => 'info',
+                        'ANULADA' => 'danger',
+                        default => 'gray',
+                    }),
+                TextColumn::make('price_net')
+                    ->label('Preço NET')
+                    ->money('EUR')
+                    ->sortable()
+                    ->summarize(Sum::make()->label('Total NET')->money('EUR')),
+                TextColumn::make('conflict_note')
+                    ->label('Conflito / aviso')
+                    ->wrap()
+                    ->color('danger')
+                    ->placeholder('—')
+                    ->toggleable(),
+                TextColumn::make('appointment_id')
+                    ->label('Na agenda?')
+                    ->badge()
+                    ->formatStateUsing(fn (?int $state): string => $state ? 'Confirmada' : 'Por confirmar')
+                    ->color(fn (?int $state): string => $state ? 'gray' : 'success'),
+            ])
+            ->filters([
+                SelectFilter::make('channel')
+                    ->label('Canal')
+                    ->options(['odisseias' => 'Odisseias']),
+                Filter::make('so_conflitos')
+                    ->label('Mostrar só conflitos/erros')
+                    ->query(fn (Builder $query): Builder => $query->where('has_conflict', true))
+                    ->toggle(),
+                Filter::make('por_confirmar')
+                    ->label('Só por confirmar')
+                    ->query(fn (Builder $query): Builder => $query->whereNull('appointment_id'))
+                    ->toggle(),
+            ])
+            ->recordActions([
+                Action::make('confirmar')
+                    ->label('Confirmar')
+                    ->icon('heroicon-o-check')
+                    ->color('success')
+                    ->visible(fn (Model $record): bool => !$record->has_conflict && $record->appointment_id === null)
+                    ->requiresConfirmation()
+                    ->action(function (Model $record) {
+                        static::confirmRecord($record);
+                    }),
+                Action::make('confirmar_com_conflito')
+                    ->label('Confirmar mesmo assim')
+                    ->icon('heroicon-o-exclamation-triangle')
+                    ->color('danger')
+                    ->visible(fn (Model $record): bool => $record->has_conflict && $record->appointment_id === null)
+                    ->requiresConfirmation()
+                    ->modalDescription('Esta reserva tem um conflito de horário sinalizado. Só confirmes depois de resolver manualmente o horário/profissional na agenda.')
+                    ->action(function (Model $record) {
+                        static::confirmRecord($record);
+                    }),
+            ])
+            ->toolbarActions([
+                BulkAction::make('confirmar_selecionadas')
+                    ->label('Confirmar selecionadas')
+                    ->icon('heroicon-o-check')
+                    ->color('success')
+                    ->requiresConfirmation()
+                    ->action(function (Collection $records) {
+                        $confirmer = app(ExternalBookingConfirmer::class);
+                        $employee = config('odisseias.default_employee_id') ? Employee::find(config('odisseias.default_employee_id')) : Employee::first();
+                        $workstation = config('odisseias.default_workstation_id') ? Workstation::find(config('odisseias.default_workstation_id')) : Workstation::where('active', true)->first();
+
+                        $confirmed = 0;
+                        $skippedConflict = 0;
+                        $errors = [];
+
+                        foreach ($records as $record) {
+                            if ($record->appointment_id !== null) {
+                                continue;
+                            }
+                            if ($record->has_conflict) {
+                                $skippedConflict++;
+                                continue;
+                            }
+                            $result = $confirmer->confirm($record, $employee, $workstation);
+                            if ($result['appointment']) {
+                                $confirmed++;
+                            } else {
+                                $errors[] = "{$record->client_name}: {$result['error']}";
+                            }
+                        }
+
+                        Notification::make()
+                            ->title("{$confirmed} marcação(ões) confirmada(s) para a agenda")
+                            ->body($skippedConflict ? "{$skippedConflict} ignorada(s) por terem conflito de horário — resolve à mão." : null)
+                            ->warning($skippedConflict > 0 || count($errors) > 0)
+                            ->success($skippedConflict === 0 && count($errors) === 0)
+                            ->send();
+
+                        if ($errors) {
+                            Notification::make()
+                                ->title('Erros ao confirmar')
+                                ->body(implode("\n", $errors))
+                                ->danger()
+                                ->send();
+                        }
+                    }),
+            ]);
+    }
+
+    private static function confirmRecord(Model $record): void
+    {
+        $confirmer = app(ExternalBookingConfirmer::class);
+        $employee = config('odisseias.default_employee_id') ? Employee::find(config('odisseias.default_employee_id')) : Employee::first();
+        $workstation = config('odisseias.default_workstation_id') ? Workstation::find(config('odisseias.default_workstation_id')) : Workstation::where('active', true)->first();
+
+        $result = $confirmer->confirm($record, $employee, $workstation);
+
+        if ($result['appointment']) {
+            Notification::make()
+                ->title('Marcação confirmada para a agenda')
+                ->success()
+                ->send();
+        } else {
+            Notification::make()
+                ->title('Não foi possível confirmar')
+                ->body($result['error'])
+                ->danger()
+                ->send();
+        }
+    }
+}

@@ -59,6 +59,21 @@ class RoomAvailability extends Page
         $this->date = $this->date ?: now()->format('Y-m-d');
     }
 
+    public function previousWeek(): void
+    {
+        $this->weekOffset--;
+    }
+
+    public function nextWeek(): void
+    {
+        $this->weekOffset++;
+    }
+
+    public function thisWeek(): void
+    {
+        $this->weekOffset = 0;
+    }
+
     public function getWorkstationsWithAppointments(): Collection
     {
         $date = $this->date ?: now()->format('Y-m-d');

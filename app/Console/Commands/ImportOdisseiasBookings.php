@@ -100,6 +100,7 @@ class ImportOdisseiasBookings extends Command
         $skippedDuplicate = 0;
         $newClientsCount = 0;
         $matchedExistingClients = 0;
+        $scheduleConflicts = [];
 
         // Cache de clientes "a criar nesta corrida" para não duplicar dentro do próprio CSV
         $pendingClientKey = [];
@@ -185,6 +186,32 @@ class ImportOdisseiasBookings extends Command
                 continue;
             }
 
+            // Deteção de conflito de horário: o profissional/posto por omissão pode já
+            // estar ocupado nesta data/hora com outra marcação (Odisseias ou não). A
+            // marcação é criada na mesma — não se perde o cliente — mas fica sinalizada
+            // aqui e no relatório final para correção manual (mudar hora/profissional).
+            if ($fallbackEmployee || $fallbackWorkstation) {
+                $conflict = Appointment::where('appointment_date', $start->toDateString())
+                    ->where('status', '!=', 'cancelled')
+                    ->where(function ($q) use ($fallbackEmployee, $fallbackWorkstation) {
+                        if ($fallbackEmployee) {
+                            $q->orWhere('employee_id', $fallbackEmployee->id);
+                        }
+                        if ($fallbackWorkstation) {
+                            $q->orWhere('workstation_id', $fallbackWorkstation->id);
+                        }
+                    })
+                    ->where('appointment_time', '<', $end->format('H:i:s'))
+                    ->where('end_time', '>', $start->format('H:i:s'))
+                    ->with('client')
+                    ->first();
+
+                if ($conflict) {
+                    $scheduleConflicts[] = "{$name} ({$start->format('d/m/Y H:i')}) choca com "
+                        . ($conflict->client->name ?? '?') . " (marcação #{$conflict->id}, mesmo profissional/posto)";
+                }
+            }
+
             $appointmentData = [
                 'client_key' => $emailKey ?: $phone ?: $this->normalize($name), // resolvido depois de criar clientes
                 'service_id' => $service?->id,
@@ -225,6 +252,15 @@ class ImportOdisseiasBookings extends Command
         $this->line('  Marcações já importadas antes (ignoradas): ' . $skippedDuplicate);
         $this->line('  Linhas anuladas/estado inválido (ignoradas): ' . $skippedCancelled);
         $this->line('  Serviços Odisseias sem correspondência em `services`: ' . count(array_unique($unresolvedService)));
+        $this->line('  Conflitos de horário (profissional/posto já ocupado): ' . count($scheduleConflicts));
+
+        if ($scheduleConflicts) {
+            $this->newLine();
+            $this->warn('CONFLITOS DE HORÁRIO — a marcação vai ser criada, mas precisa de correção manual (hora/profissional):');
+            foreach ($scheduleConflicts as $c) {
+                $this->line("  - {$c}");
+            }
+        }
 
         if ($unresolvedService) {
             $this->newLine();
