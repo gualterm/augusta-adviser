@@ -168,6 +168,18 @@ class OdisseiasClient
     }
 
     /**
+     * IMPORTANTE (descoberto em 2026-07-03 ao depurar o primeiro --commit real):
+     * a resposta de /Appointment/Details NÃO é HTML puro — é um JSON
+     * `{"Status":0,"UserState":"<html escapado como string>"}`. O HTML lá
+     * dentro tem os campos por `id` de input (Reservation_Number,
+     * N_Voucher_Payment, Date — duas vezes: 1ª = data da marcação, 2ª =
+     * prazo de cancelamento —, Customer, Phone, Email) e 4 `.form-control-
+     * static` por ordem fixa (produto, inclui, válido para, preço NET).
+     * Confirmado ao vivo no browser com a sessão real. Extrair por id/ordem
+     * é muito mais robusto do que por texto de label — alguns labels
+     * (Contacto telefónico/Email) vêm vazios no HTML real, ao contrário do
+     * que parecia ao ler a modal já processada pelo browser.
+     *
      * @return array{telefone: ?string, email: ?string, produto: ?string, inclui: ?string, prazo_cancelamento: ?string, preco_net: ?float}
      */
     public function fetchDetails(string $dataId, string $dataType): array
@@ -181,29 +193,44 @@ class OdisseiasClient
             ],
         ]);
 
-        return $this->parseDetailsHtml((string) $response->getBody());
+        $raw = (string) $response->getBody();
+        $json = json_decode($raw, true);
+        $html = is_array($json) ? ($json['UserState'] ?? '') : $raw;
+
+        return $this->parseDetailsHtml((string) $html);
     }
 
     private function parseDetailsHtml(string $html): array
     {
-        $text = trim(preg_replace('/\s+/', ' ', strip_tags($html)));
+        $dom = new \DOMDocument();
+        libxml_use_internal_errors(true);
+        $dom->loadHTML('<?xml encoding="UTF-8">' . $html);
+        libxml_use_internal_errors(false);
 
-        $extract = function (string $label, string $stopAt = null) use ($text): ?string {
-            $pattern = $stopAt
-                ? '/' . preg_quote($label, '/') . '\s*(.*?)\s*' . preg_quote($stopAt, '/') . '/u'
-                : '/' . preg_quote($label, '/') . '\s*(.*?)$/u';
-            if (preg_match($pattern, $text, $m)) {
-                return trim($m[1]) ?: null;
+        $inputValue = function (string $id, int $occurrence = 0) use ($dom): ?string {
+            $matches = [];
+            foreach ($dom->getElementsByTagName('input') as $input) {
+                if ($input->getAttribute('id') === $id) {
+                    $matches[] = trim($input->getAttribute('value'));
+                }
             }
-            return null;
+            return $matches[$occurrence] ?? null;
         };
 
-        $phone = $extract('Contacto telefónico', 'Email');
-        $email = $extract('Email', 'Inclui');
-        $product = $extract('Produto', 'Cliente');
-        $inclui = $extract('Inclui', 'Válido para');
-        $deadline = $extract('Prazo de cancelamento', 'Produto');
-        $priceRaw = $extract('Preço NET', 'EUR');
+        $statics = [];
+        foreach ($dom->getElementsByTagName('div') as $div) {
+            $class = $div->getAttribute('class');
+            if (str_contains($class, 'form-control-static')) {
+                $statics[] = trim(preg_replace('/\s+/', ' ', $div->textContent));
+            }
+        }
+
+        $phone = $inputValue('Phone');
+        $email = $inputValue('Email');
+        $deadline = $inputValue('Date', 1); // 2º input Date = prazo de cancelamento
+        $product = $statics[0] ?? null;
+        $inclui = $statics[1] ?? null;
+        $priceRaw = $statics[3] ?? null;
         $price = $priceRaw !== null
             ? (float) str_replace(['.', ','], ['', '.'], preg_replace('/[^0-9,\.]/', '', $priceRaw))
             : null;

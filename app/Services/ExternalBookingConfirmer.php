@@ -60,9 +60,11 @@ class ExternalBookingConfirmer
             return null;
         }
 
-        // O produto vem normalmente como "Unidade | Nome do serviço" — só a parte
-        // depois do "|" interessa para o mapeamento.
-        $name = trim(str_contains($productName, '|') ? explode('|', $productName, 2)[1] : $productName);
+        // O produto vem como "Unidade | Nome do serviço | N Pessoas" (3 partes,
+        // confirmado ao vivo em 2026-07-03) — só o segmento do meio interessa
+        // para o mapeamento, os outros dois são a unidade e a lotação.
+        $parts = array_map('trim', explode('|', $productName));
+        $name = $parts[1] ?? $productName;
 
         $overrides = config('odisseias.service_overrides', []);
         $lookupName = $overrides[$name] ?? $name;
