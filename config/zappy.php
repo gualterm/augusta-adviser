@@ -37,6 +37,19 @@ return [
         "Massagem de Relaxamento a 2" => "Relaxamento a 4 Mãos",
         'Limpeza de Pele' => 'Limpeza Pele',
         'Massagem Terapêutica 30\'' => "Relaxamento 30'",
+        'Pack Drenagem 3 Zonas X 6 Sessões' => 'Pack 6 Sessões',
+        'Pedicure simples + verniz gel' => 'Pedicure Simples',
+        'Design de sobrancelha' => 'Design Sobrancelha',
+        'Massagem Revitalizante Corpo Inteiro' => 'Revitalizante Corpo Inteiro',
+        // "Depilação Homem/Mulher Zona Grande/Média/Pequena" NÃO entram aqui —
+        // são resolvidos dinamicamente em ZappyImportService consoante a
+        // categoria do Zappy diga "Laser" ou "Cera" (nomes reais desde
+        // 2026-07-03: "Laser - X" / "Cera - X").
+
+        // Ainda por decidir (2026-07-03): "Tamanho S (sobre avaliação)" e
+        // "Tamanho M (sobre avaliação)" não têm serviço correspondente óbvio
+        // no catálogo atual — Gualter precisa de confirmar a que serviço
+        // real isto corresponde (ou criar um novo) antes de mapear aqui.
     ],
 
     /*

@@ -98,6 +98,7 @@ class ZappyImportService
                 $statusKey = $this->normalize($statusRaw);
                 $clientName = trim($raw['client_name'] ?? '');
                 $serviceRaw = trim($raw['item_name'] ?? '');
+                $categoryRaw = trim($raw['category'] ?? '');
                 $providerRaw = trim($raw['service_provider'] ?? '');
 
                 $line = [
@@ -133,6 +134,22 @@ class ZappyImportService
 
                 // Serviço
                 $serviceLookup = $serviceOverrides[$serviceRaw] ?? $serviceRaw;
+
+                // "Depilação Homem/Mulher Zona X" é ambíguo entre Cera e Laser —
+                // desde 2026-07-03 os serviços têm nomes únicos ("Cera - X" /
+                // "Laser - X"), decidido pela categoria do Zappy (que diz
+                // "Depilação Laser Díodo" ou "Depilação Cera Multidirecional").
+                if (preg_match('/^Depila[çc][ãa]o\s+(Homem|Mulher)\s+Zona\s+(Grande|M[ée]dia|Pequena)\.?$/iu', $serviceRaw, $m)) {
+                    if (stripos($categoryRaw, 'laser') !== false) {
+                        $serviceLookup = "Laser - {$m[1]} Zona {$m[2]}";
+                    } elseif (stripos($categoryRaw, 'cera') !== false) {
+                        $serviceLookup = "Cera - {$m[1]} Zona {$m[2]}";
+                    }
+                    // se a categoria não disser nem "laser" nem "cera", mantém
+                    // $serviceLookup original — vai falhar como "sem serviço" e
+                    // aparece no relatório para decisão manual, propositado.
+                }
+
                 $service = $services->get($this->normalize($serviceLookup));
                 if (!$service) {
                     $summary['sem_servico']++;
