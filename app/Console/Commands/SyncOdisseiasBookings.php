@@ -103,37 +103,57 @@ class SyncOdisseiasBookings extends Command
                 ->where('reserva_number', $row['reserva'])
                 ->first();
 
-            $attrs = [
+            $comparableAttrs = [
                 'voucher_number' => $row['voucher'] ?: null,
                 'client_name' => $row['cliente'],
                 'appointment_date' => $start->toDateString(),
                 'appointment_time' => $start->format('H:i:s'),
                 'external_status' => $estado,
-                'synced_at' => now(),
             ];
 
             if (!$existing) {
                 $novas++;
                 if ($commit) {
                     $details = $client->fetchDetails($row['data_id'], $row['data_type']);
-                    $attrs['channel'] = self::CHANNEL;
-                    $attrs['reserva_number'] = $row['reserva'];
-                    $attrs['client_phone'] = $details['telefone'];
-                    $attrs['client_email'] = $details['email'];
-                    $attrs['product'] = $details['produto'];
-                    $attrs['inclui'] = $details['inclui'];
-                    $attrs['cancellation_deadline'] = $details['prazo_cancelamento'];
-                    $attrs['price_net'] = $details['preco_net'];
+                    $attrs = $comparableAttrs + [
+                        'channel' => self::CHANNEL,
+                        'reserva_number' => $row['reserva'],
+                        'client_phone' => $details['telefone'],
+                        'client_email' => $details['email'],
+                        'product' => $details['produto'],
+                        'inclui' => $details['inclui'],
+                        'cancellation_deadline' => $details['prazo_cancelamento'],
+                        'price_net' => $details['preco_net'],
+                        'synced_at' => now(),
+                    ];
                     $existing = ExternalBooking::create($attrs);
                 }
             } else {
-                $atualizadas++;
-                if ($commit) {
-                    $existing->update($attrs);
+                // Só conta/grava como "atualizada" se algo realmente mudou — antes
+                // isto contava as 30 reservas em toda a corrida mesmo sem
+                // alterações reais, o que confundia o relatório do sync.
+                $mudou = false;
+                foreach ($comparableAttrs as $key => $value) {
+                    if ((string) $existing->{$key} !== (string) $value) {
+                        $mudou = true;
+                        break;
+                    }
+                }
+                if ($mudou) {
+                    $atualizadas++;
+                    if ($commit) {
+                        $existing->update($comparableAttrs + ['synced_at' => now()]);
+                    }
                 }
             }
 
             if (!$commit || !$existing) {
+                continue;
+            }
+
+            // Já resolvida manualmente antes (cancelada, confirmada com conflito
+            // ignorado, etc.) — não voltar a mexer.
+            if ($existing->ignored_at) {
                 continue;
             }
 
@@ -157,7 +177,7 @@ class SyncOdisseiasBookings extends Command
             // fantasma contra reservas que já não vão a lado nenhum).
             if ($estado === 'ANULADA') {
                 if ($existing->has_conflict) {
-                    $existing->update(['has_conflict' => false, 'conflict_note' => null]);
+                    $existing->update(['has_conflict' => false, 'conflict_note' => null, 'conflict_appointment_id' => null]);
                 }
                 continue;
             }
@@ -174,18 +194,20 @@ class SyncOdisseiasBookings extends Command
                     'confirmed_at' => $jaImportada->created_at,
                     'has_conflict' => false,
                     'conflict_note' => null,
+                    'conflict_appointment_id' => null,
                 ]);
                 $ligadasAJaExistentes++;
                 continue;
             }
 
-            $conflictNote = $confirmer->detectConflict($existing, $employee, $workstation);
+            $conflict = $confirmer->detectConflict($existing, $employee, $workstation);
             $existing->update([
-                'has_conflict' => $conflictNote !== null,
-                'conflict_note' => $conflictNote,
+                'has_conflict' => $conflict !== null,
+                'conflict_note' => $conflict ? $confirmer->conflictNote($existing, $conflict) : null,
+                'conflict_appointment_id' => $conflict?->id,
             ]);
 
-            if ($conflictNote) {
+            if ($conflict) {
                 $sinalizadasConflito++;
                 continue;
             }

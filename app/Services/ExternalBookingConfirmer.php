@@ -103,8 +103,12 @@ class ExternalBookingConfirmer
     /**
      * Verifica se o profissional/posto por omissão já está ocupado nesta
      * data/hora — mesma lógica usada no import inicial (ImportOdisseiasBookings).
+     *
+     * Devolve a marcação em conflito (não só uma nota de texto) para que a
+     * UI possa oferecer decisões reais — ver a marcação, cancelá-la, ou
+     * ignorar esta reserva — em vez de só "confirmar às cegas".
      */
-    public function detectConflict(ExternalBooking $booking, ?Employee $employee, ?Workstation $workstation, int $durationMinutes = 60): ?string
+    public function detectConflict(ExternalBooking $booking, ?Employee $employee, ?Workstation $workstation, int $durationMinutes = 60): ?Appointment
     {
         if (!$employee && !$workstation) {
             return null;
@@ -113,7 +117,7 @@ class ExternalBookingConfirmer
         $start = $booking->appointment_date->copy()->setTimeFromTimeString($booking->appointment_time);
         $end = $start->copy()->addMinutes($durationMinutes);
 
-        $conflict = Appointment::where('appointment_date', $start->toDateString())
+        return Appointment::where('appointment_date', $start->toDateString())
             ->where('status', '!=', 'cancelled')
             ->where('id', '!=', $booking->appointment_id ?? 0)
             ->where(function ($q) use ($employee, $workstation) {
@@ -128,13 +132,12 @@ class ExternalBookingConfirmer
             ->where('end_time', '>', $start->format('H:i:s'))
             ->with('client')
             ->first();
+    }
 
-        if (!$conflict) {
-            return null;
-        }
-
-        return "Choca com {$booking->client_name} " . '#' . $booking->id . ' vs marcação #' . $conflict->id
-            . ' (' . ($conflict->client->name ?? '?') . ', mesmo profissional/posto)';
+    public function conflictNote(ExternalBooking $booking, Appointment $conflict): string
+    {
+        return "Choca com marcação #{$conflict->id} de " . ($conflict->client->name ?? '?')
+            . ' (' . $conflict->appointment_date->format('d/m/Y') . ' ' . substr($conflict->appointment_time, 0, 5) . '), mesmo profissional/posto.';
     }
 
     /**

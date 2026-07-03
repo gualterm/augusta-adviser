@@ -18,6 +18,7 @@ class ExternalBooking extends Model
         'appointment_date' => 'date',
         'has_conflict' => 'boolean',
         'confirmed_at' => 'datetime',
+        'ignored_at' => 'datetime',
         'synced_at' => 'datetime',
         'price_net' => 'decimal:2',
     ];
@@ -38,14 +39,21 @@ class ExternalBooking extends Model
         'cancellation_deadline',
         'has_conflict',
         'conflict_note',
+        'conflict_appointment_id',
         'appointment_id',
         'confirmed_at',
+        'ignored_at',
         'synced_at',
     ];
 
     public function appointment(): BelongsTo
     {
         return $this->belongsTo(Appointment::class);
+    }
+
+    public function conflictAppointment(): BelongsTo
+    {
+        return $this->belongsTo(Appointment::class, 'conflict_appointment_id');
     }
 
     public function isConfirmed(): bool

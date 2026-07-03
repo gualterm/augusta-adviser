@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\ExternalBookings\Tables;
 
+use App\Filament\Resources\Appointments\AppointmentResource;
 use App\Models\Employee;
 use App\Models\Workstation;
 use App\Services\ExternalBookingConfirmer;
@@ -25,7 +26,7 @@ class ExternalBookingsTable
             ->defaultSort('appointment_date')
             ->recordClasses(fn (Model $record): string => match (true) {
                 $record->has_conflict => '!bg-danger-50',
-                $record->appointment_id !== null => '!bg-gray-100 opacity-70',
+                $record->appointment_id !== null || $record->ignored_at !== null => '!bg-gray-100 opacity-70',
                 default => '!bg-success-50',
             })
             ->columns([
@@ -39,11 +40,27 @@ class ExternalBookingsTable
                 TextColumn::make('appointment_id')
                     ->label('Na agenda?')
                     ->badge()
-                    ->formatStateUsing(fn (?int $state): string => $state ? 'Já na agenda' : 'Por confirmar')
-                    ->color(fn (?int $state): string => $state ? 'gray' : 'success'),
+                    ->formatStateUsing(fn (?int $state, Model $record): string => match (true) {
+                        $state !== null => 'Já na agenda',
+                        $record->ignored_at !== null => 'Ignorada',
+                        default => 'Por confirmar',
+                    })
+                    ->color(fn (?int $state, Model $record): string => match (true) {
+                        $state !== null || $record->ignored_at !== null => 'gray',
+                        default => 'success',
+                    }),
+                // Mensagem curta e direta na coluna, com o detalhe completo só ao
+                // passar o rato por cima (tooltip) — pedido explícito para não
+                // sobrecarregar a lista com texto longo por omissão.
                 TextColumn::make('conflict_note')
                     ->label('Conflito / aviso')
-                    ->wrap()
+                    ->formatStateUsing(fn (?string $state, Model $record): string => match (true) {
+                        $state === null => '—',
+                        str_contains($state, 'Choca com') => '⚠ Conflito de horário',
+                        str_contains($state, 'Anulada na Odisseias') => '⚠ Anulada, já na agenda',
+                        default => '⚠ Aviso',
+                    })
+                    ->tooltip(fn (?string $state): ?string => $state)
                     ->color('danger')
                     ->placeholder('—'),
                 TextColumn::make('appointment_date')
@@ -91,30 +108,67 @@ class ExternalBookingsTable
                     ->label('Mostrar só conflitos/erros')
                     ->query(fn (Builder $query): Builder => $query->where('has_conflict', true))
                     ->toggle(),
-                Filter::make('por_confirmar')
-                    ->label('Só por confirmar')
-                    ->query(fn (Builder $query): Builder => $query->whereNull('appointment_id'))
-                    ->toggle(),
+                // Ligado por omissão: uma vez confirmada, cancelada ou ignorada, a
+                // reserva já foi tratada e não precisa de continuar a aparecer —
+                // desliga este filtro para ver o histórico completo (30 reservas).
+                Filter::make('por_tratar')
+                    ->label('Esconder já tratadas (confirmadas/ignoradas)')
+                    ->query(fn (Builder $query): Builder => $query->whereNull('appointment_id')->whereNull('ignored_at'))
+                    ->toggle()
+                    ->default(true),
             ])
             ->recordActions([
                 Action::make('confirmar')
                     ->label('Confirmar')
                     ->icon('heroicon-o-check')
                     ->color('success')
-                    ->visible(fn (Model $record): bool => !$record->has_conflict && $record->appointment_id === null)
+                    ->visible(fn (Model $record): bool => !$record->has_conflict && $record->appointment_id === null && $record->ignored_at === null)
                     ->requiresConfirmation()
                     ->action(function (Model $record) {
                         static::confirmRecord($record);
                     }),
-                Action::make('confirmar_com_conflito')
-                    ->label('Confirmar mesmo assim')
-                    ->icon('heroicon-o-exclamation-triangle')
+                Action::make('ver_conflito')
+                    ->label('Ver marcação em conflito')
+                    ->icon('heroicon-o-eye')
+                    ->color('gray')
+                    ->visible(fn (Model $record): bool => $record->has_conflict && $record->conflict_appointment_id !== null)
+                    ->url(fn (Model $record): ?string => $record->conflict_appointment_id
+                        ? AppointmentResource::getUrl('edit', ['record' => $record->conflict_appointment_id])
+                        : null)
+                    ->openUrlInNewTab(),
+                Action::make('cancelar_existente_e_confirmar')
+                    ->label('Cancelar existente e confirmar esta')
+                    ->icon('heroicon-o-arrow-path-rounded-square')
                     ->color('danger')
+                    ->visible(fn (Model $record): bool => $record->has_conflict && $record->appointment_id === null && $record->conflict_appointment_id !== null)
+                    ->requiresConfirmation()
+                    ->modalHeading('Cancelar marcação existente e confirmar esta reserva')
+                    ->modalDescription(fn (Model $record): string => "Vou cancelar a marcação #{$record->conflict_appointment_id} (a que está a chocar) e confirmar em seu lugar a reserva da Odisseias de {$record->client_name}. A marcação antiga não é apagada, só fica com estado \"Cancelada\".")
+                    ->modalSubmitActionLabel('Sim, cancelar e confirmar')
+                    ->action(function (Model $record) {
+                        $record->conflictAppointment?->update(['status' => 'cancelled']);
+                        $record->update(['has_conflict' => false, 'conflict_note' => null, 'conflict_appointment_id' => null]);
+                        static::confirmRecord($record);
+                    }),
+                Action::make('ignorar_reserva')
+                    ->label('Ignorar esta reserva')
+                    ->icon('heroicon-o-x-mark')
+                    ->color('gray')
                     ->visible(fn (Model $record): bool => $record->has_conflict && $record->appointment_id === null)
                     ->requiresConfirmation()
-                    ->modalDescription('Esta reserva tem um conflito de horário sinalizado. Só confirmes depois de resolver manualmente o horário/profissional na agenda.')
+                    ->modalDescription('Esta reserva não é confirmada para a agenda — mantém-se a marcação existente e esta linha deixa de aparecer na lista por omissão (podes sempre voltar a vê-la desligando o filtro "Esconder já tratadas").')
                     ->action(function (Model $record) {
-                        static::confirmRecord($record);
+                        $record->update([
+                            'ignored_at' => now(),
+                            'has_conflict' => false,
+                            'conflict_note' => 'Ignorada manualmente em ' . now()->format('d/m/Y H:i') . ' — mantida a marcação existente.',
+                        ]);
+
+                        Notification::make()
+                            ->title('Reserva ignorada')
+                            ->success()
+                            ->persistent()
+                            ->send();
                     }),
                 Action::make('cancelar_marcacao')
                     ->label('Cancelar marcação')
@@ -159,7 +213,7 @@ class ExternalBookingsTable
                         $errors = [];
 
                         foreach ($records as $record) {
-                            if ($record->appointment_id !== null) {
+                            if ($record->appointment_id !== null || $record->ignored_at !== null) {
                                 continue;
                             }
                             if ($record->has_conflict) {
