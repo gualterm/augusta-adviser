@@ -4,6 +4,7 @@ use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Forms\Components\Textarea;
 use Filament\Notifications\Notification;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\Filter;
@@ -118,11 +119,29 @@ class AppointmentsTable
                     ->visible(fn (Model $record): bool => self::isLunchRequestNote($record->notes) && $record->status !== 'cancelled')
                     ->requiresConfirmation()
                     ->modalHeading('Recusar e cancelar esta marcação')
-                    ->modalDescription('A marcação fica cancelada. O cliente terá de escolher outra hora — ainda não enviamos email automático a avisar, é preciso contactá-lo diretamente.')
-                    ->modalSubmitActionLabel('Sim, recusar e cancelar')
-                    ->action(function (Model $record) {
-                        $record->update(['status' => 'cancelled', 'notes' => 'Pedido recusado pela clínica — cliente contactado para remarcar.']);
-                        Notification::make()->warning()->title('Marcação recusada e cancelada')->send();
+                    ->modalDescription('A marcação fica cancelada e o cliente recebe um email automático com o motivo que escreveres abaixo e um link para escolher outra hora.')
+                    ->modalSubmitActionLabel('Recusar e enviar email')
+                    ->form([
+                        Textarea::make('motivo')
+                            ->label('Motivo do cancelamento (vai no email ao cliente)')
+                            ->placeholder('Ex.: Infelizmente não temos disponibilidade a essa hora de almoço.')
+                            ->required()
+                            ->rows(3),
+                    ])
+                    ->action(function (Model $record, array $data) {
+                        $reason = $data['motivo'];
+                        $record->update([
+                            'status' => 'cancelled',
+                            'notes'  => 'Pedido recusado pela clínica: ' . $reason,
+                        ]);
+
+                        try {
+                            $record->client?->notify(new \App\Notifications\AppointmentCancelledNotification($record, $reason));
+                            Notification::make()->warning()->title('Marcação recusada e email enviado ao cliente')->send();
+                        } catch (\Throwable $e) {
+                            report($e);
+                            Notification::make()->danger()->title('Marcação recusada, mas o email falhou')->body('Contacta o cliente diretamente.')->send();
+                        }
                     }),
                 EditAction::make()->visible(fn($record) => \App\Filament\Resources\Appointments\AppointmentResource::canEdit($record)),
             ])
