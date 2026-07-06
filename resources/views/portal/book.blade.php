@@ -110,6 +110,21 @@ select:focus,input:focus{outline:none;border-color:#cdb9a9;}
   </div>
   <button class="btn-outline" onclick="resetForm()" style="margin-top:10px">Escolher outra data / hora</button>
 </div>
+<div class="box" id="lunch-request-box" style="display:none;border:1.5px solid #e8d5a3;background:#fffaf0;">
+  <div style="font-size:13px;color:#7a6040;margin-bottom:10px;">
+    🍽️ A hora que pediste (<strong id="lunch-request-time"></strong>) é durante o intervalo de almoço.
+    Podes pedir na mesma — fica sujeito a confirmação da clínica.
+  </div>
+  <form method="POST" action="{{ route('portal.book.store') }}">
+    @csrf
+    <input type="hidden" name="service_id" id="lunch_form_service">
+    <input type="hidden" name="appointment_date" id="lunch_form_date">
+    <input type="hidden" name="appointment_time" id="lunch_form_time">
+    <input type="hidden" name="employee_id" id="lunch_form_employee">
+    @if(isset($promo) && $promo)<input type="hidden" name="promo_id" value="{{ $promo->id }}">@endif
+    <button type="submit" class="btn-outline" style="border-color:#e8c088;color:#8a6a2e;">Pedir horário de almoço mesmo assim</button>
+  </form>
+</div>
 <div id="hint-msg" style="display:none;margin-top:12px;padding:10px 16px;background:#fff8ee;border:1px solid #e8d5a3;border-radius:12px;font-size:13px;color:#7a6040;">
   ☝️ Altera a data ou hora pretendida nos campos acima e clica novamente em <strong>Ver Disponibilidade</strong>.
 </div>
@@ -147,6 +162,19 @@ function checkSlot(){
     .then(r => r.json())
     .then(data => {
       loading.style.display = 'none';
+
+      var lunchBox = document.getElementById('lunch-request-box');
+      if (data.lunch_request) {
+        document.getElementById('lunch-request-time').textContent = data.lunch_request.time;
+        document.getElementById('lunch_form_service').value  = serviceEl.value;
+        document.getElementById('lunch_form_date').value     = dateEl.value;
+        document.getElementById('lunch_form_time').value     = data.lunch_request.time;
+        document.getElementById('lunch_form_employee').value = data.lunch_request.employee_id;
+        lunchBox.style.display = 'block';
+      } else {
+        lunchBox.style.display = 'none';
+      }
+
       if (!data.slot) {
         suggestion.className = 'suggestion';
         suggestion.style.display = 'block';
@@ -245,6 +273,7 @@ window.addEventListener('DOMContentLoaded', function() {
 function resetForm(){
   suggestion.style.display = 'none';
   document.getElementById('more-slots').style.display = 'none';
+  document.getElementById('lunch-request-box').style.display = 'none';
   document.getElementById('hint-msg').style.display = 'block';
   checkBtn.disabled = false;
   window.scrollTo({top: 0, behavior: 'smooth'});

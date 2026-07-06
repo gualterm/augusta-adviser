@@ -246,6 +246,30 @@ class ClientPortalController extends Controller
         $employees = $this->getEmployeesForService($service);
         $equipmentIds = $service->equipment->pluck('id')->all();
 
+        // Se a hora pedida cai no intervalo de almoço, verifica se seria possível
+        // marcar mesmo assim (profissional + posto livres) e devolve essa opção
+        // à parte, para o cliente poder "pedir" — sujeito a confirmação da Marta.
+        // Pedido da Marta (2026-07-06): não sugerir o almoço por defeito, mas
+        // deixar o cliente pedir explicitamente se quiser insistir.
+        $lunchRequest = null;
+        $preferredStr = $preferred->format('H:i');
+        $preferredEnd = $preferred->copy()->addMinutes($duration)->format('H:i');
+        if ($this->classifyBookingWindow($date, $preferredStr, $preferredEnd) === 'lunch') {
+            foreach ($employees as $employee) {
+                if (AppointmentConflictService::employeeHasConflict($employee->id, $date, $preferredStr, $preferredEnd)) continue;
+                if (!empty($equipmentIds) && AppointmentConflictService::equipmentHasConflict($equipmentIds, $date, $preferredStr, $preferredEnd)) continue;
+                $workstation = AppointmentConflictService::findAlternativeWorkstation($service->workstation_type, $date, $preferredStr, $preferredEnd);
+                if (!$workstation) continue;
+                if ($service->two_employees) continue; // simplificação: pedido de almoço só para serviços de 1 terapeuta
+                $lunchRequest = [
+                    'time'          => $preferredStr,
+                    'employee_id'   => $employee->id,
+                    'employee_name' => $employee->name,
+                ];
+                break;
+            }
+        }
+
         foreach ($slots as $startTime) {
             $endTime = Carbon::createFromFormat('H:i', $startTime)->addMinutes($duration)->format('H:i');
             foreach ($employees as $employee) {
@@ -271,11 +295,12 @@ class ClientPortalController extends Controller
                     'secondary_employee_name' => $secondary ? $secondary['name'] : null,
                     'available_employees'     => $available,
                     'two_employees'           => (bool) $service->two_employees,
+                    'lunch_request'           => $lunchRequest,
                 ]);
             }
         }
 
-        return response()->json(['slot' => null, 'exact' => false]);
+        return response()->json(['slot' => null, 'exact' => false, 'lunch_request' => $lunchRequest]);
     }
 
     /**
