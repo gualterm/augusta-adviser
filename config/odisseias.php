@@ -37,5 +37,10 @@ return [
         'Massagem Localizada' => "Relaxamento 60'",
         'Limpeza de Pele' => 'Limpeza Pele',
         'Massagem Relaxante para Grávida' => 'Grávidas',
+        // Assunção do Gualter (2026-07-06), a confirmar com a Marta: produtos
+        // "Massagem em [Localidade]" da Odisseias mapeiam sempre para
+        // Relaxamento 60'. Se a Odisseias começar a vender massagens de
+        // duração diferente sob este mesmo nome, isto vai mapear errado.
+        'Massagem em Vila do Conde' => "Relaxamento 60'",
     ],
 ];
