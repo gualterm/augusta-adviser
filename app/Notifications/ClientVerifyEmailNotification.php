@@ -20,6 +20,6 @@ class ClientVerifyEmailNotification extends VerifyEmail {
             ->action('Confirmar Email', $this->verificationUrl($notifiable))
             ->line('Este link expira em 60 minutos.')
             ->line('Se não criaste uma conta, ignora este email.')
-            ->salutation('Com os melhores cumprimentos,<br>Augusta Adviser');
+            ->salutation(new \Illuminate\Support\HtmlString('Com os melhores cumprimentos,<br>Augusta Adviser'));
     }
 }

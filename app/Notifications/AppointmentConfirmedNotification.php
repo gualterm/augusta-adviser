@@ -47,7 +47,7 @@ class AppointmentConfirmedNotification extends Notification
             ->line('**Profissional:** ' . ($appointment->employee->name ?? '—'))
             ->line('Em anexo enviamos um ficheiro de calendário para adicionares esta marcação ao Outlook, telemóvel ou computador.')
             ->line('Se precisares de remarcar ou cancelar, podes fazê-lo na tua área de cliente.')
-            ->salutation('Com os melhores cumprimentos,<br>Augusta Adviser');
+            ->salutation(new \Illuminate\Support\HtmlString('Com os melhores cumprimentos,<br>Augusta Adviser'));
 
         $message->attachData(
             $this->buildIcs($appointment),
