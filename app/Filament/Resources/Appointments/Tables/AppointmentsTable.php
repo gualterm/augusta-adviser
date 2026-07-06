@@ -1,13 +1,16 @@
 <?php
 namespace App\Filament\Resources\Appointments\Tables;
+use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Notifications\Notification;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 class AppointmentsTable
 {
     public static function configure(Table $table): Table
@@ -60,8 +63,19 @@ class AppointmentsTable
                 TextColumn::make('price')
                     ->label('Preço')
                     ->money('EUR'),
+                TextColumn::make('notes')
+                    ->label('Aviso')
+                    ->formatStateUsing(fn (?string $state): ?string => filled($state) ? '⚠ Aviso' : null)
+                    ->badge()
+                    ->color('warning')
+                    ->tooltip(fn (?string $state): ?string => $state)
+                    ->toggleable(),
             ])
             ->filters([
+                Filter::make('com_aviso')
+                    ->label('⚠ Com aviso (ex.: pedido de almoço)')
+                    ->query(fn (Builder $query): Builder => $query->whereNotNull('notes')->where('notes', '!=', ''))
+                    ->toggle(),
                 Filter::make('sem_profissional')
                     ->label('⚠ Sem profissional')
                     ->query(fn (Builder $query): Builder => $query->whereDoesntHave('employee'))
@@ -82,6 +96,30 @@ class AppointmentsTable
                     ]),
             ])
             ->recordActions([
+                Action::make('aceitar_aviso')
+                    ->label('Aceitar')
+                    ->icon('heroicon-o-check')
+                    ->color('success')
+                    ->visible(fn (Model $record): bool => filled($record->notes) && $record->status !== 'cancelled')
+                    ->requiresConfirmation()
+                    ->modalDescription('Confirmas esta marcação (ex.: pedido de horário de almoço)? O aviso desaparece da lista.')
+                    ->action(function (Model $record) {
+                        $record->update(['notes' => null]);
+                        Notification::make()->success()->title('Marcação confirmada')->send();
+                    }),
+                Action::make('recusar_aviso')
+                    ->label('Recusar')
+                    ->icon('heroicon-o-x-mark')
+                    ->color('danger')
+                    ->visible(fn (Model $record): bool => filled($record->notes) && $record->status !== 'cancelled')
+                    ->requiresConfirmation()
+                    ->modalHeading('Recusar e cancelar esta marcação')
+                    ->modalDescription('A marcação fica cancelada. O cliente terá de escolher outra hora — ainda não enviamos email automático a avisar, é preciso contactá-lo diretamente.')
+                    ->modalSubmitActionLabel('Sim, recusar e cancelar')
+                    ->action(function (Model $record) {
+                        $record->update(['status' => 'cancelled', 'notes' => 'Pedido recusado pela clínica — cliente contactado para remarcar.']);
+                        Notification::make()->warning()->title('Marcação recusada e cancelada')->send();
+                    }),
                 EditAction::make()->visible(fn($record) => \App\Filament\Resources\Appointments\AppointmentResource::canEdit($record)),
             ])
             ->toolbarActions([

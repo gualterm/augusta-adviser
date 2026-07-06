@@ -50,6 +50,28 @@ class AppointmentResource extends Resource
         ];
     }
 
+    /**
+     * Contador na barra lateral para marcações com aviso pendente (ex.: pedidos
+     * de horário de almoço) ainda não resolvidos e que ainda não passaram.
+     * Pedido da Marta (2026-07-06): não pode passar despercebido.
+     */
+    public static function getNavigationBadge(): ?string
+    {
+        $count = Appointment::query()
+            ->whereNotNull('notes')
+            ->where('notes', '!=', '')
+            ->where('status', '!=', 'cancelled')
+            ->where('appointment_date', '>=', now()->toDateString())
+            ->count();
+
+        return $count > 0 ? (string) $count : null;
+    }
+
+    public static function getNavigationBadgeColor(): ?string
+    {
+        return 'warning';
+    }
+
     public static function getPages(): array
     {
         return [
