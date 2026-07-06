@@ -133,4 +133,8 @@ class CreateAppointment extends CreateRecord
 
         $data['appointment_time'] = $suggestion['start'];
         $data['end_time'] = $suggestion['end'];
-        $data['workstation_id']
+        $data['workstation_id'] = $suggestion['workstation_id'];
+
+        return $data;
+    }
+}

@@ -262,4 +262,67 @@ class ExternalBookingsTable
                         $employee = config('odisseias.default_employee_id') ? Employee::find(config('odisseias.default_employee_id')) : Employee::first();
                         $workstation = config('odisseias.default_workstation_id') ? Workstation::find(config('odisseias.default_workstation_id')) : Workstation::where('active', true)->first();
 
-     
+                        $confirmed = 0;
+                        $skippedConflict = 0;
+                        $errors = [];
+
+                        foreach ($records as $record) {
+                            if ($record->appointment_id !== null || $record->ignored_at !== null || $record->external_status === 'ANULADA') {
+                                continue;
+                            }
+                            if ($record->has_conflict) {
+                                $skippedConflict++;
+                                continue;
+                            }
+                            $result = $confirmer->confirm($record, $employee, $workstation);
+                            if ($result['appointment']) {
+                                $confirmed++;
+                            } else {
+                                $errors[] = "{$record->client_name}: {$result['error']}";
+                            }
+                        }
+
+                        Notification::make()
+                            ->title("{$confirmed} marcação(ões) confirmada(s) para a agenda")
+                            ->body($skippedConflict ? "{$skippedConflict} ignorada(s) por terem conflito de horário — resolve à mão." : null)
+                            ->warning($skippedConflict > 0 || count($errors) > 0)
+                            ->success($skippedConflict === 0 && count($errors) === 0)
+                            ->persistent()
+                            ->send();
+
+                        if ($errors) {
+                            Notification::make()
+                                ->title('Erros ao confirmar')
+                                ->body(implode("\n", $errors))
+                                ->danger()
+                                ->persistent()
+                                ->send();
+                        }
+                    }),
+            ]);
+    }
+
+    private static function confirmRecord(Model $record): void
+    {
+        $confirmer = app(ExternalBookingConfirmer::class);
+        $employee = config('odisseias.default_employee_id') ? Employee::find(config('odisseias.default_employee_id')) : Employee::first();
+        $workstation = config('odisseias.default_workstation_id') ? Workstation::find(config('odisseias.default_workstation_id')) : Workstation::where('active', true)->first();
+
+        $result = $confirmer->confirm($record, $employee, $workstation);
+
+        if ($result['appointment']) {
+            Notification::make()
+                ->title('Marcação confirmada para a agenda')
+                ->success()
+                ->persistent()
+                ->send();
+        } else {
+            Notification::make()
+                ->title('Não foi possível confirmar')
+                ->body($result['error'])
+                ->danger()
+                ->persistent()
+                ->send();
+        }
+    }
+}
