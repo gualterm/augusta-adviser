@@ -17,6 +17,7 @@ class CreateAppointment extends CreateRecord
         $time = request()->query('appointment_time');
         if ($time && strlen($time) === 5) { $time .= ':00'; }
         $overrides = array_filter([
+            'client_id'        => request()->query('client_id'),
             'employee_id'      => request()->query('employee_id'),
             'workstation_id'   => request()->query('workstation_id'),
             'appointment_date' => request()->query('appointment_date'),
@@ -132,8 +133,4 @@ class CreateAppointment extends CreateRecord
 
         $data['appointment_time'] = $suggestion['start'];
         $data['end_time'] = $suggestion['end'];
-        $data['workstation_id'] = $suggestion['workstation_id'];
-
-        return $data;
-    }
-}
+        $data['workstation_id']

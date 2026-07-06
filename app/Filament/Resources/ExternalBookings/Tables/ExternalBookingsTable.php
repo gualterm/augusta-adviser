@@ -14,6 +14,7 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use Filament\Support\Enums\Width;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
@@ -147,10 +148,48 @@ class ExternalBookingsTable
                     ->icon('heroicon-o-eye')
                     ->color('gray')
                     ->visible(fn (Model $record): bool => $record->has_conflict && $record->conflict_appointment_id !== null)
-                    ->url(fn (Model $record): ?string => $record->conflict_appointment_id
-                        ? AppointmentResource::getUrl('edit', ['record' => $record->conflict_appointment_id])
-                        : null)
-                    ->openUrlInNewTab(),
+                    ->modalHeading('Reserva Odisseias vs. marcação existente')
+                    ->modalWidth(Width::FourExtraLarge)
+                    ->modalSubmitAction(false)
+                    ->modalCancelActionLabel('Fechar')
+                    ->extraModalFooterActions(fn (Action $action): array => [
+                        Action::make('abrir_marcacao_existente')
+                            ->label('Abrir marcação existente')
+                            ->icon('heroicon-o-pencil-square')
+                            ->url(fn (): ?string => $action->getRecord()?->conflict_appointment_id
+                                ? AppointmentResource::getUrl('edit', ['record' => $action->getRecord()->conflict_appointment_id])
+                                : null)
+                            ->openUrlInNewTab(),
+                    ])
+                    ->modalContent(function (Model $record) {
+                        $conflict = $record->conflictAppointment?->loadMissing(['client', 'employee', 'workstation', 'service']);
+                        $defaultEmployee = config('odisseias.default_employee_id') ? Employee::find(config('odisseias.default_employee_id')) : Employee::first();
+                        $defaultWorkstation = config('odisseias.default_workstation_id') ? Workstation::find(config('odisseias.default_workstation_id')) : Workstation::where('active', true)->first();
+
+                        $bookingStart = $record->appointment_date->copy()->setTimeFromTimeString($record->appointment_time);
+                        $bookingEnd = $bookingStart->copy()->addMinutes(60);
+
+                        $conflictStart = $conflict ? $conflict->appointment_date->copy()->setTimeFromTimeString($conflict->appointment_time) : null;
+                        $conflictEnd = $conflict && $conflict->end_time ? $conflict->appointment_date->copy()->setTimeFromTimeString($conflict->end_time) : null;
+
+                        $sameEmployee = $conflict && $defaultEmployee && $conflict->employee_id === $defaultEmployee->id;
+                        $sameWorkstation = $conflict && $defaultWorkstation && $conflict->workstation_id === $defaultWorkstation->id;
+                        $overlaps = $conflict && $conflictStart && $conflictEnd && $bookingStart->lt($conflictEnd) && $bookingEnd->gt($conflictStart);
+
+                        return view('filament.external-bookings.conflict-comparison', [
+                            'booking' => $record,
+                            'bookingStart' => $bookingStart,
+                            'bookingEnd' => $bookingEnd,
+                            'defaultEmployee' => $defaultEmployee,
+                            'defaultWorkstation' => $defaultWorkstation,
+                            'conflict' => $conflict,
+                            'conflictStart' => $conflictStart,
+                            'conflictEnd' => $conflictEnd,
+                            'sameEmployee' => $sameEmployee,
+                            'sameWorkstation' => $sameWorkstation,
+                            'overlaps' => $overlaps,
+                        ]);
+                    }),
                 Action::make('cancelar_existente_e_confirmar')
                     ->label('Cancelar existente e confirmar esta')
                     ->icon('heroicon-o-arrow-path-rounded-square')
@@ -223,67 +262,4 @@ class ExternalBookingsTable
                         $employee = config('odisseias.default_employee_id') ? Employee::find(config('odisseias.default_employee_id')) : Employee::first();
                         $workstation = config('odisseias.default_workstation_id') ? Workstation::find(config('odisseias.default_workstation_id')) : Workstation::where('active', true)->first();
 
-                        $confirmed = 0;
-                        $skippedConflict = 0;
-                        $errors = [];
-
-                        foreach ($records as $record) {
-                            if ($record->appointment_id !== null || $record->ignored_at !== null || $record->external_status === 'ANULADA') {
-                                continue;
-                            }
-                            if ($record->has_conflict) {
-                                $skippedConflict++;
-                                continue;
-                            }
-                            $result = $confirmer->confirm($record, $employee, $workstation);
-                            if ($result['appointment']) {
-                                $confirmed++;
-                            } else {
-                                $errors[] = "{$record->client_name}: {$result['error']}";
-                            }
-                        }
-
-                        Notification::make()
-                            ->title("{$confirmed} marcação(ões) confirmada(s) para a agenda")
-                            ->body($skippedConflict ? "{$skippedConflict} ignorada(s) por terem conflito de horário — resolve à mão." : null)
-                            ->warning($skippedConflict > 0 || count($errors) > 0)
-                            ->success($skippedConflict === 0 && count($errors) === 0)
-                            ->persistent()
-                            ->send();
-
-                        if ($errors) {
-                            Notification::make()
-                                ->title('Erros ao confirmar')
-                                ->body(implode("\n", $errors))
-                                ->danger()
-                                ->persistent()
-                                ->send();
-                        }
-                    }),
-            ]);
-    }
-
-    private static function confirmRecord(Model $record): void
-    {
-        $confirmer = app(ExternalBookingConfirmer::class);
-        $employee = config('odisseias.default_employee_id') ? Employee::find(config('odisseias.default_employee_id')) : Employee::first();
-        $workstation = config('odisseias.default_workstation_id') ? Workstation::find(config('odisseias.default_workstation_id')) : Workstation::where('active', true)->first();
-
-        $result = $confirmer->confirm($record, $employee, $workstation);
-
-        if ($result['appointment']) {
-            Notification::make()
-                ->title('Marcação confirmada para a agenda')
-                ->success()
-                ->persistent()
-                ->send();
-        } else {
-            Notification::make()
-                ->title('Não foi possível confirmar')
-                ->body($result['error'])
-                ->danger()
-                ->persistent()
-                ->send();
-        }
-    }
-}
+     
