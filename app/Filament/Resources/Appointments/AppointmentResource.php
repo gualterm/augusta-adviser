@@ -58,8 +58,7 @@ class AppointmentResource extends Resource
     public static function getNavigationBadge(): ?string
     {
         $count = Appointment::query()
-            ->whereNotNull('notes')
-            ->where('notes', '!=', '')
+            ->where('notes', 'like', '%horário de almoço%')
             ->where('status', '!=', 'cancelled')
             ->where('appointment_date', '>=', now()->toDateString())
             ->count();

@@ -65,16 +65,20 @@ class AppointmentsTable
                     ->money('EUR'),
                 TextColumn::make('notes')
                     ->label('Aviso')
-                    ->formatStateUsing(fn (?string $state): ?string => filled($state) ? '⚠ Aviso' : null)
+                    ->formatStateUsing(fn (?string $state): ?string => match (true) {
+                        self::isLunchRequestNote($state) => '⚠ Pedido de almoço',
+                        filled($state) => '📝 Nota',
+                        default => null,
+                    })
                     ->badge()
-                    ->color('warning')
+                    ->color(fn (?string $state): string => self::isLunchRequestNote($state) ? 'warning' : 'gray')
                     ->tooltip(fn (?string $state): ?string => $state)
                     ->toggleable(),
             ])
             ->filters([
                 Filter::make('com_aviso')
-                    ->label('⚠ Com aviso (ex.: pedido de almoço)')
-                    ->query(fn (Builder $query): Builder => $query->whereNotNull('notes')->where('notes', '!=', ''))
+                    ->label('⚠ Pedido de horário de almoço por confirmar')
+                    ->query(fn (Builder $query): Builder => $query->where('notes', 'like', '%horário de almoço%'))
                     ->toggle(),
                 Filter::make('sem_profissional')
                     ->label('⚠ Sem profissional')
@@ -100,9 +104,9 @@ class AppointmentsTable
                     ->label('Aceitar')
                     ->icon('heroicon-o-check')
                     ->color('success')
-                    ->visible(fn (Model $record): bool => filled($record->notes) && $record->status !== 'cancelled')
+                    ->visible(fn (Model $record): bool => self::isLunchRequestNote($record->notes) && $record->status !== 'cancelled')
                     ->requiresConfirmation()
-                    ->modalDescription('Confirmas esta marcação (ex.: pedido de horário de almoço)? O aviso desaparece da lista.')
+                    ->modalDescription('Confirmas esta marcação (pedido de horário de almoço)? O aviso desaparece da lista.')
                     ->action(function (Model $record) {
                         $record->update(['notes' => null]);
                         Notification::make()->success()->title('Marcação confirmada')->send();
@@ -111,7 +115,7 @@ class AppointmentsTable
                     ->label('Recusar')
                     ->icon('heroicon-o-x-mark')
                     ->color('danger')
-                    ->visible(fn (Model $record): bool => filled($record->notes) && $record->status !== 'cancelled')
+                    ->visible(fn (Model $record): bool => self::isLunchRequestNote($record->notes) && $record->status !== 'cancelled')
                     ->requiresConfirmation()
                     ->modalHeading('Recusar e cancelar esta marcação')
                     ->modalDescription('A marcação fica cancelada. O cliente terá de escolher outra hora — ainda não enviamos email automático a avisar, é preciso contactá-lo diretamente.')
@@ -127,5 +131,15 @@ class AppointmentsTable
                     DeleteBulkAction::make()->visible(fn() => \App\Filament\Resources\Appointments\AppointmentResource::canDeleteAny()),
                 ]),
             ]);
+    }
+
+    /**
+     * Distingue um pedido de horário de almoço (criado por
+     * ClientPortalController::book/saveReschedule) de uma nota qualquer —
+     * só o primeiro deve mostrar o aviso acionável (Aceitar/Recusar).
+     */
+    public static function isLunchRequestNote(?string $notes): bool
+    {
+        return $notes !== null && str_contains($notes, 'horário de almoço');
     }
 }
