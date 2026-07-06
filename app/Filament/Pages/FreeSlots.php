@@ -4,6 +4,7 @@ namespace App\Filament\Pages;
 use App\Models\Appointment;
 use App\Models\BusinessHour;
 use App\Models\Employee;
+use App\Models\EmployeeSchedule;
 use Carbon\Carbon;
 use Filament\Pages\Page;
 
@@ -26,10 +27,18 @@ class FreeSlots extends Page
         $employees = Employee::query()->where('active', true)
             ->whereHas('user', fn ($q) => $q->where('role', '!=', 'recepcionista'))
             ->orderBy('name')->get();
+        // Horário individual de cada profissional, indexado por "empId-diaDaSemana",
+        // para não mostrar como livre quem não trabalha nesse dia/hora.
+        // Pedido da Marta (2026-07-06): Horários Livres estava só a olhar para
+        // conflitos de marcações, ignorando por completo o horário de trabalho.
+        $schedules = EmployeeSchedule::whereIn('employee_id', $employees->pluck('id'))
+            ->get()
+            ->keyBy(fn ($sch) => $sch->employee_id . '-' . $sch->day_of_week);
         $days = [];
         for ($d = $startDay->copy(); $d->lte($endDay); $d->addDay()) {
             $date = $d->format('Y-m-d');
-            $bh = BusinessHour::where('day_of_week', (int)$d->format('w'))->first();
+            $dayOfWeek = (int) $d->format('w');
+            $bh = BusinessHour::where('day_of_week', $dayOfWeek)->first();
             if (!$bh || !$bh->is_open) continue;
             $dayOpen  = Carbon::parse($date . ' ' . $bh->open_time);
             $dayClose = Carbon::parse($date . ' ' . $bh->close_time);
@@ -39,7 +48,15 @@ class FreeSlots extends Page
             $slots = [];
             for ($cur = $dayOpen->copy(); $cur->lt($dayClose); $cur->addMinutes(30)) {
                 $s = $cur->copy(); $e = $cur->copy()->addMinutes(30);
-                $free = $employees->filter(function($emp) use ($appts,$s,$e) {
+                $free = $employees->filter(function($emp) use ($appts,$s,$e,$schedules,$date,$dayOfWeek) {
+                    // Respeitar o horário individual do profissional, se estiver definido.
+                    $sch = $schedules->get($emp->id . '-' . $dayOfWeek);
+                    if ($sch) {
+                        if (!$sch->is_working) return false;
+                        $empStart = Carbon::parse($date . ' ' . $sch->start_time);
+                        $empEnd   = Carbon::parse($date . ' ' . $sch->end_time);
+                        if ($s->lt($empStart) || $e->gt($empEnd)) return false;
+                    }
                     foreach ($appts->where('employee_id',$emp->id) as $a) {
                         $d2 = Carbon::parse($a->appointment_date)->toDateString();
                         $as = Carbon::parse($d2.' '.$a->appointment_time);
