@@ -30,6 +30,17 @@ class AppointmentsTable
                     ->label('Cliente')
                     ->searchable()
                     ->sortable(),
+                TextColumn::make('notes')
+                    ->label('Aviso')
+                    ->formatStateUsing(fn (?string $state): ?string => match (true) {
+                        self::isLunchRequestNote($state) => '⚠ Pedido de almoço',
+                        filled($state) => '📝 Nota',
+                        default => null,
+                    })
+                    ->badge()
+                    ->color(fn (?string $state): string => self::isLunchRequestNote($state) ? 'warning' : 'gray')
+                    ->tooltip(fn (?string $state): ?string => $state)
+                    ->toggleable(),
                 TextColumn::make('source')
                     ->label('Origem')
                     ->badge()
@@ -64,17 +75,6 @@ class AppointmentsTable
                 TextColumn::make('price')
                     ->label('Preço')
                     ->money('EUR'),
-                TextColumn::make('notes')
-                    ->label('Aviso')
-                    ->formatStateUsing(fn (?string $state): ?string => match (true) {
-                        self::isLunchRequestNote($state) => '⚠ Pedido de almoço',
-                        filled($state) => '📝 Nota',
-                        default => null,
-                    })
-                    ->badge()
-                    ->color(fn (?string $state): string => self::isLunchRequestNote($state) ? 'warning' : 'gray')
-                    ->tooltip(fn (?string $state): ?string => $state)
-                    ->toggleable(),
             ])
             ->filters([
                 Filter::make('com_aviso')
