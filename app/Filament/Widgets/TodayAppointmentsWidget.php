@@ -62,7 +62,7 @@ class TodayAppointmentsWidget extends BaseWidget
                                        ->orWhereIn('secondary_employee_id', $empIds));
         }
 
-        $showPrice = ($role === 'admin' || $role === 'recepcionista');
+        $showPrice = ($role === 'admin' || $role === 'rececionista');
 
         $columns = [
             Tables\Columns\TextColumn::make('appointment_time')

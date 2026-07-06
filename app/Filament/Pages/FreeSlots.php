@@ -25,7 +25,7 @@ class FreeSlots extends Page
         $startDay = Carbon::today()->addWeeks($this->dayOffset);
         $endDay   = $startDay->copy()->addDays($this->daysAhead - 1);
         $employees = Employee::query()->where('active', true)
-            ->whereHas('user', fn ($q) => $q->where('role', '!=', 'recepcionista'))
+            ->whereHas('user', fn ($q) => $q->where('role', '!=', 'rececionista'))
             ->orderBy('name')->get();
         // Horário individual de cada profissional, indexado por "empId-diaDaSemana",
         // para não mostrar como livre quem não trabalha nesse dia/hora.

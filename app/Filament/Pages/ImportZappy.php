@@ -35,7 +35,7 @@ class ImportZappy extends Page
 
     public static function canAccess(): bool
     {
-        return in_array(Auth::user()?->role, ['admin', 'recepcionista'], true);
+        return in_array(Auth::user()?->role, ['admin', 'rececionista'], true);
     }
 
     public static function getNavigationIcon(): string|\BackedEnum|null

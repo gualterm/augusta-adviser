@@ -198,7 +198,7 @@ class RoomAvailability extends Page
 
         return Employee::query()
             ->where('active', true)
-            ->whereHas('user', fn ($q) => $q->where('role', '!=', 'recepcionista'))
+            ->whereHas('user', fn ($q) => $q->where('role', '!=', 'rececionista'))
             ->orderBy('name')
             ->get()
             ->values()
@@ -274,7 +274,7 @@ class RoomAvailability extends Page
 
         return Employee::query()
             ->where('active', true)
-            ->whereHas('user', fn ($q) => $q->where('role', '!=', 'recepcionista'))
+            ->whereHas('user', fn ($q) => $q->where('role', '!=', 'rececionista'))
             ->orderBy('name')
             ->get()
             ->values()
@@ -371,7 +371,7 @@ class RoomAvailability extends Page
 
         $employees = Employee::query()
             ->where('active', true)
-            ->whereHas('user', fn ($q) => $q->where('role', '!=', 'recepcionista'))
+            ->whereHas('user', fn ($q) => $q->where('role', '!=', 'rececionista'))
             ->orderBy('name')
             ->get()
             ->values();
