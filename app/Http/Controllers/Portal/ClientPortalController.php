@@ -399,7 +399,7 @@ class ClientPortalController extends Controller
                 if (!$secondaryEmployee) continue; // sem 2º terapeuta, tenta próximo slot
                 $secondaryEmployeeId = $secondaryEmployee->id;
             }
-            Appointment::create([
+            $appointment = Appointment::create([
                 'client_id'              => $client->id,
                 'employee_id'            => $employee->id,
                 'secondary_employee_id'  => $secondaryEmployeeId,
@@ -423,6 +423,15 @@ class ClientPortalController extends Controller
                     return $price;
                 })(),
             ]);
+
+            // Envia email de confirmação com anexo .ics — se falhar (ex.: SMTP
+            // em baixo), não deve impedir a marcação de ficar criada.
+            try {
+                $client->notify(new \App\Notifications\AppointmentConfirmedNotification($appointment));
+            } catch (\Throwable $e) {
+                report($e);
+            }
+
             return redirect()->route('portal.dashboard')->with('booking_success', true);
         }
         return back()
