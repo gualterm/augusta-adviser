@@ -445,6 +445,18 @@ if ('serviceWorker' in navigator) {
     if (val && el) el.value = decodeURIComponent(val);
   });
 })();
+
+// Pre-preenchimento via URL: /consentimento/?email=cliente@exemplo.pt
+// A Marta pode enviar o link ao cliente ou pré-preencher no tablet
+(function() {
+  var params = new URLSearchParams(window.location.search);
+  var fields = { email: 'f_email', nome: 'f_name', phone: 'f_phone', nif: 'f_nif', morada: 'f_morada', cp: 'f_cp', localidade: 'f_loc' };
+  Object.keys(fields).forEach(function(param) {
+    var val = params.get(param);
+    var el = document.getElementById(fields[param]);
+    if (val && el) el.value = decodeURIComponent(val);
+  });
+})();
 </script>
 </body>
 </html>

@@ -31,8 +31,11 @@ class ConsentController extends Controller
             'signature_data'    => 'nullable|string|max:500000',
         ]);
 
-        // Procurar cliente existente por email
-        $client = Client::where('email', $data['email'])->orWhere('phone', $data['phone'] ?? '')->whereNotNull('phone')->first();
+        // Procurar cliente existente por email — se não encontrar, tenta pelo telefone
+        $client = Client::where('email', $data['email'])->first();
+        if (!$client && !empty($data['phone'])) {
+            $client = Client::where('phone', $data['phone'])->first();
+        }
 
         // Campos a sobrepor no cliente (apenas os que foram preenchidos no formulário)
         $clientUpdate = array_filter([
