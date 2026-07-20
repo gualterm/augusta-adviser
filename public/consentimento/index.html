@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#2C1810">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Augusta">
+<title>Augusta — Consentimento RGPD</title>
+<link rel="manifest" href="manifest.json">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{min-height:100%;font-family:Georgia,serif;background:#FDFAF6;color:#2C1810}
+.hdr{background:#2C1810;color:#C4975A;text-align:center;padding:18px 16px;position:sticky;top:0;z-index:10;box-shadow:0 2px 8px rgba(0,0,0,.3)}
+.hdr h1{font-size:1.5em;letter-spacing:.12em}
+.hdr p{color:#E8D5B7;font-size:.75em;margin-top:4px}
+.wrap{max-width:640px;margin:0 auto;padding:24px 16px 48px}
+.sec{margin-bottom:28px}
+.sec h2{color:#8B6914;font-size:.88em;text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid #E8D5B7;padding-bottom:8px;margin-bottom:18px}
+.fld{margin-bottom:16px}
+.fld label{display:block;font-size:.85em;color:#5C3D2E;margin-bottom:5px;font-weight:bold}
+.fld label .opt{font-weight:normal;color:#A08060}
+input[type=text],input[type=email],input[type=tel],input[type=date]{
+  width:100%;padding:12px 14px;border:1.5px solid #E8D5B7;border-radius:8px;
+  font-size:1em;background:white;color:#2C1810;font-family:Georgia,serif;
+  -webkit-appearance:none;transition:border-color .2s,box-shadow .2s}
+input:focus{outline:none;border-color:#C4975A;box-shadow:0 0 0 3px rgba(196,151,90,.15)}
+.rgpd-box{
+  background:#FFF8F0;border:1.5px solid #E8D5B7;border-radius:8px;
+  padding:16px;font-size:.82em;line-height:1.7;max-height:190px;
+  overflow-y:auto;color:#3C2418;-webkit-overflow-scrolling:touch}
+.rgpd-box a{color:#C4975A}
+.chk-row{display:flex;align-items:flex-start;gap:12px;margin-top:14px;cursor:pointer}
+.chk-row input[type=checkbox]{
+  width:22px;height:22px;margin-top:1px;flex-shrink:0;
+  accent-color:#C4975A;cursor:pointer}
+.chk-row span{font-size:.88em;line-height:1.5;color:#2C1810}
+.sig-wrap{
+  border:2px dashed #C4975A;border-radius:10px;background:white;
+  position:relative;overflow:hidden;margin-top:12px;touch-action:none}
+#sig-canvas{width:100%;height:180px;display:block;cursor:crosshair;touch-action:none}
+.sig-hint{
+  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  color:#C4975A;opacity:.5;font-size:.9em;pointer-events:none;
+  user-select:none;text-align:center;line-height:1.5}
+.btn-clear{
+  background:none;border:1px solid #E8D5B7;color:#8B6914;
+  padding:7px 16px;border-radius:6px;font-size:.82em;
+  cursor:pointer;margin-top:10px;font-family:Georgia,serif}
+.btn-clear:hover{background:#FFF8F0}
+.date-line{font-size:.85em;color:#8B6914;margin-top:14px}
+.btn-sub{
+  width:100%;background:#C4975A;color:white;border:none;
+  padding:16px;font-size:1.05em;border-radius:10px;cursor:pointer;
+  font-family:Georgia,serif;margin-top:8px;letter-spacing:.05em;
+  transition:background .2s}
+.btn-sub:not(:disabled):hover{background:#A67D42}
+.btn-sub:disabled{opacity:.5;cursor:not-allowed}
+.err{
+  background:#FFF0F0;border:1.5px solid #FFAAAA;color:#C0392B;
+  padding:12px 16px;border-radius:8px;font-size:.88em;
+  margin:12px 0;display:none}
+#success{display:none;text-align:center;padding:48px 24px}
+.chk-big{font-size:4em;display:block;margin-bottom:16px}
+#success h2{color:#2C1810;margin-bottom:12px;font-size:1.25em}
+#success p{color:#5C3D2E;font-size:.93em;line-height:1.65;max-width:380px;margin:0 auto}
+.ref-badge{
+  display:inline-block;background:#FFF8F0;border:1px solid #E8D5B7;
+  color:#8B6914;padding:8px 22px;border-radius:20px;
+  font-size:.88em;margin:18px 0}
+.btn-sec{
+  background:none;border:2px solid #C4975A;color:#C4975A;
+  padding:12px 24px;border-radius:8px;font-size:.9em;
+  cursor:pointer;font-family:Georgia,serif;margin:6px;
+  transition:all .2s}
+.btn-sec:hover{background:#C4975A;color:white}
+.install-banner{
+  background:#FFF8F0;border:1px solid #E8D5B7;border-radius:8px;
+  padding:12px 16px;font-size:.82em;color:#5C3D2E;margin-bottom:20px;
+  display:none;align-items:center;gap:12px}
+.install-banner button{
+  background:#C4975A;color:white;border:none;padding:7px 14px;
+  border-radius:6px;font-size:.85em;cursor:pointer;font-family:Georgia,serif;
+  white-space:nowrap}
+
+@media print{
+  .hdr{background:#2C1810!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .btn-sub,.btn-clear,.btn-sec,.install-banner{display:none!important}
+  #success{display:none!important}
+  #form{display:block!important}
+  .rgpd-box{max-height:none;overflow:visible}
+  #sig-canvas{display:none}
+  .print-sig-line{display:block!important}
+}
+.print-sig-line{
+  display:none;width:100%;height:80px;border-bottom:2px solid #333;margin-top:8px}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <h1>AUGUSTA</h1>
+  <p>Beauty Advisor &middot; Consultora de Imagem &amp; Est&eacute;tica</p>
+</div>
+
+<div class="wrap">
+
+  <!-- Faixa de instalação PWA (iOS/Android) -->
+  <div class="install-banner" id="install-banner">
+    <span>&#128241; Instalar como app neste dispositivo?</span>
+    <button id="btn-install">Instalar</button>
+    <button onclick="document.getElementById('install-banner').style.display='none'" style="background:none;color:#8B6914;border:none;font-size:1.1em;cursor:pointer">&#x2715;</button>
+  </div>
+
+  <div id="form">
+
+    <!-- Secção 1 — Dados Pessoais -->
+    <div class="sec">
+      <h2>1. Dados Pessoais</h2>
+      <div class="fld">
+        <label for="f_name">Nome completo</label>
+        <input type="text" id="f_name" autocomplete="name" placeholder="Maria Silva" inputmode="text">
+      </div>
+      <div class="fld">
+        <label for="f_email">Email</label>
+        <input type="email" id="f_email" autocomplete="email" placeholder="maria@exemplo.pt" inputmode="email">
+      </div>
+      <div class="fld">
+        <label for="f_phone">Telem&oacute;vel</label>
+        <input type="tel" id="f_phone" autocomplete="tel" placeholder="912 345 678" inputmode="tel">
+      </div>
+      <div class="fld">
+        <label for="f_bdate">Data de nascimento <span class="opt">(opcional)</span></label>
+        <input type="date" id="f_bdate" autocomplete="bday">
+      </div>
+    </div>
+
+    <!-- Secção 2 — RGPD -->
+    <div class="sec">
+      <h2>2. Consentimento de Tratamento de Dados (RGPD)</h2>
+      <div class="rgpd-box">
+        <strong>Respons&aacute;vel pelo Tratamento:</strong> Augusta Beauty Advisor, Vila do Conde.<br><br>
+        <strong>Finalidades:</strong> Os dados pessoais fornecidos (nome, email, telem&oacute;vel, data de nascimento) s&atilde;o recolhidos para:
+        gest&atilde;o de agendamentos e marca&ccedil;&otilde;es; comunica&ccedil;&atilde;o relacionada com os seus tratamentos;
+        cumprimento de obriga&ccedil;&otilde;es legais aplic&aacute;veis.<br><br>
+        <strong>Conserva&ccedil;&atilde;o:</strong> Os seus dados ser&atilde;o conservados durante o per&iacute;odo em que mantiver rela&ccedil;&atilde;o
+        com o estabelecimento e pelo prazo legalmente exigido, findos os quais ser&atilde;o eliminados ou anonimizados.<br><br>
+        <strong>Direitos:</strong> Tem o direito de aceder, rectificar, apagar, limitar, portar e opor-se ao tratamento dos seus dados pessoais.
+        Para o exercer, contacte <a href="mailto:noreply@augustaadviser.pt">noreply@augustaadviser.pt</a>.
+        Tem ainda o direito de reclamar junto da Comiss&atilde;o Nacional de Prote&ccedil;&atilde;o de Dados
+        (<a href="https://www.cnpd.pt" target="_blank">CNPD &mdash; www.cnpd.pt</a>).<br><br>
+        <strong>Autoriza&ccedil;&atilde;o de tratamento est&eacute;tico:</strong> Declaro que as informa&ccedil;&otilde;es prestadas s&atilde;o verdadeiras
+        e que fui informado(a) sobre os tratamentos a realizar, as suas caracter&iacute;sticas e poss&iacute;veis contra-indica&ccedil;&otilde;es.
+        Autorizo a realiza&ccedil;&atilde;o dos tratamentos est&eacute;ticos agendados.
+      </div>
+
+      <label class="chk-row">
+        <input type="checkbox" id="f_rgpd">
+        <span><strong>Li e aceito</strong> a pol&iacute;tica de tratamento de dados e autorizo a realiza&ccedil;&atilde;o
+        dos tratamentos est&eacute;ticos. <em>(obrigat&oacute;rio)</em></span>
+      </label>
+
+      <label class="chk-row">
+        <input type="checkbox" id="f_mkt">
+        <span>Aceito receber comunica&ccedil;&otilde;es de marketing com novidades e promo&ccedil;&otilde;es
+        da Augusta Beauty Advisor. <em>(opcional)</em></span>
+      </label>
+    </div>
+
+    <!-- Secção 3 — Assinatura -->
+    <div class="sec">
+      <h2>3. Assinatura Digital</h2>
+      <p style="font-size:.84em;color:#5C3D2E;margin-bottom:8px">
+        Assine com o dedo (ou caneta num tablet) no espa&ccedil;o abaixo:
+      </p>
+      <div class="sig-wrap">
+        <canvas id="sig-canvas"></canvas>
+        <div class="sig-hint" id="sig-hint">&#9997; Assine aqui</div>
+      </div>
+      <div class="print-sig-line"></div>
+      <button class="btn-clear" type="button" onclick="clearSig()">&#8634; Limpar assinatura</button>
+      <div class="date-line">Data: <strong id="date-txt"></strong></div>
+    </div>
+
+    <div class="err" id="err-msg"></div>
+
+    <button class="btn-sub" id="btn-sub" type="button" onclick="doSubmit()">
+      Confirmar e Assinar
+    </button>
+
+  </div><!-- #form -->
+
+  <!-- Ecrã de sucesso -->
+  <div id="success">
+    <span class="chk-big">&#10003;</span>
+    <h2>Consentimento Registado!</h2>
+    <p>Obrigado! O seu consentimento foi guardado com sucesso.<br>
+       Receber&aacute; uma confirma&ccedil;&atilde;o no email fornecido.</p>
+    <div class="ref-badge" id="ref-badge"></div>
+    <br>
+    <button class="btn-sec" onclick="doPrint()">&#128424; Imprimir c&oacute;pia em papel</button>
+    <button class="btn-sec" onclick="doNew()">+ Novo consentimento</button>
+  </div>
+
+</div><!-- .wrap -->
+
+<script>
+// ── Data ──────────────────────────────────────────────────────────────────────
+document.getElementById('date-txt').textContent =
+  new Date().toLocaleDateString('pt-PT',{day:'2-digit',month:'long',year:'numeric'});
+
+// ── Signature pad ─────────────────────────────────────────────────────────────
+var canvas = document.getElementById('sig-canvas');
+var ctx    = canvas.getContext('2d');
+var drawing = false, signed = false;
+
+function initCanvas() {
+  var r = canvas.getBoundingClientRect();
+  var dpr = window.devicePixelRatio || 1;
+  canvas.width  = Math.round(r.width  * dpr);
+  canvas.height = Math.round(r.height * dpr);
+  ctx.scale(dpr, dpr);
+  ctx.strokeStyle = '#1A0E08';
+  ctx.lineWidth   = 2.2;
+  ctx.lineCap     = 'round';
+  ctx.lineJoin    = 'round';
+}
+initCanvas();
+window.addEventListener('resize', function() {
+  var img = new Image();
+  img.src = canvas.toDataURL();
+  initCanvas();
+  img.onload = function(){ ctx.drawImage(img, 0, 0, canvas.getBoundingClientRect().width, canvas.getBoundingClientRect().height); };
+});
+
+function evPos(e) {
+  var r   = canvas.getBoundingClientRect();
+  var src = e.touches ? e.touches[0] : e;
+  return { x: src.clientX - r.left, y: src.clientY - r.top };
+}
+
+canvas.addEventListener('mousedown',  function(e){ drawing=true; var p=evPos(e); ctx.beginPath(); ctx.moveTo(p.x,p.y); });
+canvas.addEventListener('mousemove',  function(e){ if(!drawing) return; var p=evPos(e); ctx.lineTo(p.x,p.y); ctx.stroke(); markSigned(); });
+canvas.addEventListener('mouseup',    function(){ drawing=false; });
+canvas.addEventListener('mouseleave', function(){ drawing=false; });
+canvas.addEventListener('touchstart', function(e){ e.preventDefault(); drawing=true; var p=evPos(e); ctx.beginPath(); ctx.moveTo(p.x,p.y); }, {passive:false});
+canvas.addEventListener('touchmove',  function(e){ e.preventDefault(); if(!drawing) return; var p=evPos(e); ctx.lineTo(p.x,p.y); ctx.stroke(); markSigned(); }, {passive:false});
+canvas.addEventListener('touchend',   function(){ drawing=false; });
+
+function markSigned() { signed=true; document.getElementById('sig-hint').style.display='none'; }
+function clearSig()   { ctx.clearRect(0,0,canvas.width,canvas.height); signed=false; document.getElementById('sig-hint').style.display=''; }
+
+// ── Submit ────────────────────────────────────────────────────────────────────
+var _saved = null;
+
+async function doSubmit() {
+  var name  = document.getElementById('f_name').value.trim();
+  var email = document.getElementById('f_email').value.trim();
+  var phone = document.getElementById('f_phone').value.trim();
+  var bdate = document.getElementById('f_bdate').value;
+  var rgpd  = document.getElementById('f_rgpd').checked;
+  var mkt   = document.getElementById('f_mkt').checked;
+  var errEl = document.getElementById('err-msg');
+  errEl.style.display = 'none';
+
+  if (!name || !email || !phone) {
+    errEl.textContent = 'Por favor preencha nome, email e telemóvel.';
+    errEl.style.display = 'block'; return;
+  }
+  if (!/^[^@]+@[^@]+\.[^@]+$/.test(email)) {
+    errEl.textContent = 'Email inválido.';
+    errEl.style.display = 'block'; return;
+  }
+  if (!rgpd) {
+    errEl.textContent = 'É necessário aceitar os termos de consentimento.';
+    errEl.style.display = 'block'; return;
+  }
+  if (!signed) {
+    errEl.textContent = 'Por favor assine no espaço indicado.';
+    errEl.style.display = 'block'; return;
+  }
+
+  var btn = document.getElementById('btn-sub');
+  btn.disabled = true;
+  btn.textContent = 'A registar...';
+
+  var sig = canvas.toDataURL('image/png');
+
+  try {
+    var r = await fetch('/api/consent', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({ name, email, phone, birth_date: bdate || null, marketing_consent: mkt, signature_data: sig })
+    });
+    var j = await r.json();
+    if (r.ok && j.success) {
+      _saved = {
+        name, email, phone, bdate, mkt, sig, ref: j.ref,
+        date: document.getElementById('date-txt').textContent
+      };
+      document.getElementById('form').style.display    = 'none';
+      document.getElementById('success').style.display = 'block';
+      document.getElementById('ref-badge').textContent = 'Referência: #' + j.ref;
+      window.scrollTo(0,0);
+    } else {
+      throw new Error(j.message || 'Erro ao registar. Tente novamente.');
+    }
+  } catch(e) {
+    errEl.textContent    = e.message;
+    errEl.style.display  = 'block';
+    btn.disabled         = false;
+    btn.textContent      = 'Confirmar e Assinar';
+  }
+}
+
+// ── Imprimir ──────────────────────────────────────────────────────────────────
+function doPrint() {
+  if (!_saved) return;
+  var d = _saved;
+  var w = window.open('', '_blank', 'width=720,height=960');
+  w.document.write([
+    '<!DOCTYPE html><html lang="pt"><head><meta charset="UTF-8">',
+    '<title>Consentimento Augusta #' + d.ref + '</title>',
+    '<style>',
+    'body{font-family:Georgia,serif;max-width:660px;margin:28px auto;color:#2C1810;font-size:13px;line-height:1.6}',
+    'h1{color:#C4975A;font-size:1.4em;letter-spacing:.1em;margin-bottom:2px}',
+    '.subtitle{color:#666;font-size:.82em;margin-bottom:16px}',
+    'hr{border:none;border-top:2px solid #2C1810;margin:14px 0}',
+    'hr.thin{border-top:1px solid #DDD}',
+    '.field{margin:6px 0}',
+    '.rgpd{font-size:.78em;line-height:1.65;background:#FFF8F0;padding:12px 14px;border-radius:4px;margin:10px 0;border:1px solid #E8D5B7}',
+    'img.sig{max-width:100%;height:90px;display:block;border-bottom:1.5px solid #555;margin-top:4px;object-fit:contain;object-position:left}',
+    '.footer{color:#999;font-size:.75em;margin-top:28px;text-align:center}',
+    '@media print{.no-print{display:none}}',
+    '</style></head><body>',
+    '<h1>AUGUSTA &mdash; BEAUTY ADVISOR</h1>',
+    '<div class="subtitle">Consentimento de Tratamento de Dados &amp; Autoriza&ccedil;&atilde;o de Tratamento Est&eacute;tico</div>',
+    '<hr>',
+    '<div class="field"><strong>Nome:</strong> ' + esc(d.name) + '</div>',
+    '<div class="field"><strong>Email:</strong> ' + esc(d.email) + '</div>',
+    '<div class="field"><strong>Telem&oacute;vel:</strong> ' + esc(d.phone) + '</div>',
+    d.bdate ? '<div class="field"><strong>Nascimento:</strong> ' + esc(d.bdate) + '</div>' : '',
+    '<div class="field"><strong>Data de consentimento:</strong> ' + esc(d.date) + '</div>',
+    '<div class="field"><strong>Refer&ecirc;ncia:</strong> #' + d.ref + '</div>',
+    '<hr class="thin">',
+    '<div class="rgpd">',
+    'A signat&aacute;ria/o signat&aacute;rio declara ter lido e aceite a pol&iacute;tica de tratamento de dados da Augusta Beauty Advisor, ',
+    'nos termos do Regulamento Geral sobre a Prote&ccedil;&atilde;o de Dados (RGPD / Reg. EU 2016/679). ',
+    'Autoriza a recolha e tratamento dos dados pessoais acima indicados para gest&atilde;o de agendamentos e comunica&ccedil;&atilde;o de servi&ccedil;os. ',
+    'Autoriza ainda a realiza&ccedil;&atilde;o dos tratamentos est&eacute;ticos agendados, declarando ter sido informado(a) das suas caracter&iacute;sticas e poss&iacute;veis contra-indica&ccedil;&otilde;es.',
+    '</div>',
+    '<div class="field"><strong>Marketing:</strong> ' + (d.mkt ? 'Aceito receber comunicações de marketing.' : 'Não aceito comunicações de marketing.') + '</div>',
+    '<hr class="thin">',
+    '<div class="field"><strong>Assinatura:</strong></div>',
+    '<img class="sig" src="' + d.sig + '" alt="Assinatura digital">',
+    '<div class="footer">Augusta Beauty Advisor &middot; Vila do Conde &middot; augustaadviser.pt &middot; Consentimento #' + d.ref + '</div>',
+    '<br><button class="no-print" onclick="window.print()" style="padding:10px 24px;background:#C4975A;color:white;border:none;border-radius:6px;font-size:14px;cursor:pointer">&#128424; Imprimir</button>',
+    '</body></html>'
+  ].join(''));
+  w.document.close();
+}
+
+function esc(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ── Novo consentimento ────────────────────────────────────────────────────────
+function doNew() {
+  document.getElementById('form').style.display    = 'block';
+  document.getElementById('success').style.display = 'none';
+  ['f_name','f_email','f_phone','f_bdate'].forEach(function(id){ document.getElementById(id).value=''; });
+  document.getElementById('f_rgpd').checked = false;
+  document.getElementById('f_mkt').checked  = false;
+  clearSig();
+  var btn = document.getElementById('btn-sub');
+  btn.disabled    = false;
+  btn.textContent = 'Confirmar e Assinar';
+  _saved = null;
+  window.scrollTo(0,0);
+  // Actualizar data
+  document.getElementById('date-txt').textContent =
+    new Date().toLocaleDateString('pt-PT',{day:'2-digit',month:'long',year:'numeric'});
+}
+
+// ── PWA install prompt ────────────────────────────────────────────────────────
+var _deferredPrompt = null;
+window.addEventListener('beforeinstallprompt', function(e) {
+  e.preventDefault();
+  _deferredPrompt = e;
+  document.getElementById('install-banner').style.display = 'flex';
+});
+document.getElementById('btn-install').addEventListener('click', function() {
+  if (!_deferredPrompt) return;
+  _deferredPrompt.prompt();
+  _deferredPrompt.userChoice.then(function() {
+    _deferredPrompt = null;
+    document.getElementById('install-banner').style.display = 'none';
+  });
+});
+window.addEventListener('appinstalled', function() {
+  document.getElementById('install-banner').style.display = 'none';
+});
+
+// ── Service worker ────────────────────────────────────────────────────────────
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/consentimento/sw.js').catch(function(){});
+}
+</script>
+</body>
+</html>
