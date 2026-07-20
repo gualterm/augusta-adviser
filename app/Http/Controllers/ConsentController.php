@@ -89,6 +89,7 @@ class ConsentController extends Controller
             'signature_data'    => $data['signature_data'] ?? null,
             'consented_at'      => now(),
         ]);
+        $consent->refresh();
 
         // Email de confirmação
         try {

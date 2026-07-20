@@ -23,7 +23,7 @@
     <table width="100%" cellpadding="0" cellspacing="0" style="background:#FFF8F0; border:1px solid #E8D5B7; border-radius:8px; margin-bottom:24px;">
     <tr><td style="padding:18px 20px; font-size:0.9em; color:#2C1810; line-height:2;">
       <p style="margin:0 0 4px;"><strong>Refer&ecirc;ncia:</strong> #{{ $consent->id }}</p>
-      <p style="margin:0 0 12px;"><strong>Data:</strong> {{ $consent->consented_at->format('d/m/Y \à\s H:i') }}</p>
+      <p style="margin:0 0 12px;"><strong>Data:</strong> {{ ($consent->consented_at ?? now())->format('d/m/Y \à\s H:i') }}</p>
       <hr style="border:none;border-top:1px solid #E8D5B7;margin:4px 0 12px;">
       <p style="margin:0 0 4px;"><strong>Nome:</strong> {{ $consent->name }}</p>
       <p style="margin:0 0 4px;"><strong>Email:</strong> {{ $consent->email }}</p>
