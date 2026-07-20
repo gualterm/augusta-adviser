@@ -52,7 +52,7 @@
     <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-6 mb-5">
         <h2 class="font-semibold text-gray-700 mb-1">Comunicações de Marketing</h2>
         <p class="text-sm text-gray-500 mb-4">
-            Novidades, promoções e dicas de beleza da Augusta Beauty Advisor.
+            Novidades, promoções e dicas de beleza da Augusta Beauty Adviser.
             Pode alterar esta preferência a qualquer momento.
         </p>
 

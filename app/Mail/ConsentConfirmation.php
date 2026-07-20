@@ -17,7 +17,7 @@ class ConsentConfirmation extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Confirmação de Consentimento — Augusta Beauty Advisor',
+            subject: 'Confirmação de Consentimento — Augusta Beauty Adviser',
         );
     }
 
