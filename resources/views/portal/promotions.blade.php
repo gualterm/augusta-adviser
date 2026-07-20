@@ -32,6 +32,12 @@ body{font-family:'Montserrat',sans-serif;background:#faf8f5;color:#555;}
         <h1>Promoções</h1>
         <div>
             <a href="{{ route('portal.dashboard') }}" class="btn btn-outline">← Conta</a>
+
+            {{-- Privacidade (RGPD) --}}
+            <a href="{{ route('portal.privacy.show') }}"
+               class="{{ request()->routeIs('portal.privacy*') ? 'font-semibold text-amber-600' : '' }}">
+                Privacidade
+            </a>
             <a href="{{ route('portal.book') }}" class="btn" style="margin-left:8px;">Marcar Consulta</a>
         </div>
     </div>

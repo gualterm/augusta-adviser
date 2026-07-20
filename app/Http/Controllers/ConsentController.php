@@ -43,7 +43,10 @@ class ConsentController extends Controller
 
         // Marcar cliente como tendo dado consentimento
         if ($client) {
-            $client->update(['consented_at' => now()]);
+            $client->update([
+                'consented_at'      => now(),
+                'marketing_consent' => $data['marketing_consent'] ?? false,
+            ]);
         }
 
         // Email de confirmação para o cliente

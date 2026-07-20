@@ -48,3 +48,10 @@ Route::get('/admin/ambiente', function () {
     if (auth()->user()->role !== 'admin') return redirect('/admin');
     return view('admin.ambiente');
 });
+
+// Privacidade & Consentimento do Cliente
+Route::middleware('auth:client')->prefix('portal')->name('portal.')->group(function () {
+    Route::get('/privacidade',  [\App\Http\Controllers\ClientPrivacyController::class, 'show'])->name('privacy.show');
+    Route::patch('/privacidade', [\App\Http\Controllers\ClientPrivacyController::class, 'update'])->name('privacy.update');
+    Route::post('/privacidade/eliminar', [\App\Http\Controllers\ClientPrivacyController::class, 'deleteRequest'])->name('privacy.delete-request');
+});
