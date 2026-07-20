@@ -1,0 +1,13 @@
+{
+  "name": "Augusta — Consentimento RGPD",
+  "short_name": "Augusta",
+  "description": "Formulário de consentimento de tratamento de dados",
+  "start_url": "/consentimento/",
+  "scope": "/consentimento/",
+  "display": "standalone",
+  "background_color": "#FDFAF6",
+  "theme_color": "#2C1810",
+  "lang": "pt",
+  "orientation": "portrait-primary",
+  "icons": []
+}
