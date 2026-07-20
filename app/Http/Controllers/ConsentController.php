@@ -47,7 +47,7 @@ class ConsentController extends Controller
             'codigo_postal'     => $data['codigo_postal'] ?? null,
             'localidade'        => $data['localidade'] ?? null,
             'marketing_consent' => $data['marketing_consent'] ?? false,
-            'consented_at'      => now(),
+            'data_consent_at'   => now(),
         ], fn ($v) => $v !== null);
         // marketing_consent pode ser false — forçar inclusão
         $clientUpdate['marketing_consent'] = $data['marketing_consent'] ?? false;
@@ -71,7 +71,7 @@ class ConsentController extends Controller
             'marketing_consent' => $data['marketing_consent'] ?? false,
             'ip_address'        => $request->ip(),
             'signature_data'    => $data['signature_data'] ?? null,
-            'consented_at'      => now(),
+            'data_consent_at'   => now(),
         ]);
 
         // Email de confirmação
