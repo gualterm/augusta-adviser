@@ -1,0 +1,30 @@
+nome,telefone,email,data,hora,servico,duracao_min,pessoas,preco_net_eur,reserva_odisseias,voucher,estado,fonte
+Jessica,938495556,jessica.veloso.2000@hotmail.com,24-06-2026,10:00,Massagem com Pedras Quentes ou Velas,60,1,9.75,H278450665004,,REALIZADA,Odisseias
+Paulo Silva,932995107,paulojorgelagesilva@gmail.com,24-06-2026,14:30,Massagem Localizada,60,2,14.60,H278289506605,H270035148959,REALIZADA,Odisseias
+António Pinto,937752234,diogorafaelvinhaspinto@gmail.com,03-07-2026,16:00,Massagem Relaxante para Grávida,60,1,9.75,H278622699710,H278601986610,CONFIRMADA,Odisseias
+Carlos Barbosa,914242066,carlosbarbosa99@gmail.com,04-07-2026,10:00,Massagem Localizada,60,2,14.60,H278592654215,1762736251,CONFIRMADA,Odisseias
+Sandra Torres,926170580,sandractorres99@gmail.com,04-07-2026,11:30,Limpeza de Pele,45,1,9.75,H278715891852,2231096081,CONFIRMADA,Odisseias
+Mariana Mourão,968042794,marianamouraoalvao@gmail.com,04-07-2026,14:30,Massagem Localizada,60,2,14.60,H276695079532,H219700403818,CONFIRMADA,Odisseias
+Marlene Pereira,937445949,marlenepereira1107@gmail.com,04-07-2026,16:00,Massagem com Pedras Quentes ou Velas,60,1,9.75,H278957891610,H204207671256,CONFIRMADA,Odisseias
+Inês Pimentel Álvares da Cunha,916225330,inespacunha@gmail.com,05-07-2026,14:30,Massagem Localizada,60,2,14.60,H278495745253,H149857933371,CONFIRMADA,Odisseias
+Fabio Cruz,935264161,fabiocruzbobinagem@gmail.com,05-07-2026,16:00,Massagem com Pedras Quentes ou Velas,60,1,9.75,H278448525786,H263105679267,CONFIRMADA,Odisseias
+Joana,926002042,joaninha04santos@gmail.com,06-07-2026,10:00,Massagem com Pedras Quentes ou Velas,60,1,9.75,H278085516615,2544876120,CONFIRMADA,Odisseias
+Filipa Ferreira De Andrade,962339502,apilifandrade83@gmail.com,06-07-2026,11:30,Massagem Localizada,60,2,14.60,H278401996077,2315619713,CONFIRMADA,Odisseias
+Vanessa Fernandes,920597474,v.fernandes.96@hotmail.com,06-07-2026,17:30,Massagem Localizada,60,2,14.60,H278980551414,2242091783,CONFIRMADA,Odisseias
+Natalie Tavares,910143068,natstavares1981@gmail.com,10-07-2026,11:30,Massagem Localizada,60,2,14.60,H278687477870,2545487135,CONFIRMADA,Odisseias
+Tiago Pimentel,916113808,tiagopimentel08022007@gmail.com,11-07-2026,10:00,Massagem Localizada,60,2,14.60,H278970225513,1979189098,CONFIRMADA,Odisseias
+Mariana Silva,915810734,marianasilva11@outlook.pt,11-07-2026,11:30,Massagem com Pedras Quentes ou Velas,60,1,9.75,H278840288349,2721075173,CONFIRMADA,Odisseias
+Filipa Campos,914113752,bfmcampos@gmail.com,11-07-2026,14:30,Massagem com Pedras Quentes ou Velas,60,1,9.75,H278545214792,2316922378,CONFIRMADA,Odisseias
+Angela Flores Silva,964492479,floresilva1984@gmail.com,11-07-2026,16:00,Massagem com Pedras Quentes ou Velas,60,1,9.75,H278190346846,H276642162056,CONFIRMADA,Odisseias
+Renato Almeida,914356238,renalipe96@hotmail.com,12-07-2026,14:30,Massagem Localizada,60,2,14.60,H278587429174,H260773771179,CONFIRMADA,Odisseias
+Fabio Cruz,918888289,andremaieiro6@gmail.com,18-07-2026,10:00,Massagem Localizada,60,2,14.60,H278532825070,H269798906680,CONFIRMADA,Odisseias
+Tania Filipa Sousa Carvalho,916350785,taniacarvalho1210@gmail.com,18-07-2026,11:30,Massagem Localizada,60,2,14.60,H276478308000,2372366438,CONFIRMADA,Odisseias
+Marlene Pereira,937445949,marlenepereira1107@gmail.com,18-07-2026,14:30,Massagem com Pedras Quentes ou Velas,60,1,9.75,H278901926650,H242727466167,CONFIRMADA,Odisseias
+Ana Milhazes,915468319,anacmilhazes@gmail.com,18-07-2026,16:00,Massagem Localizada,60,2,14.60,H278668977325,2021032650,CONFIRMADA,Odisseias
+Cláudia Adriana Leite Moreira Pinto,965216505,lauadripinto@gmail.com,25-07-2026,10:00,Massagem Localizada,60,2,14.60,H278891754354,1762414567,CONFIRMADA,Odisseias
+Susana Ferreira,919159271,Ferreira.susana.81@gmail.com,25-07-2026,11:30,Limpeza de Pele,45,1,9.75,H276709318207,2231513019,CONFIRMADA,Odisseias
+Ines Torres,914719104,inesstorres_@hotmail.com,25-07-2026,14:30,Massagem com Pedras Quentes ou Velas,60,1,9.75,H278891096557,1821420826,CONFIRMADA,Odisseias
+Ana,912287126,anacouto11@gmail.com,07-08-2026,10:00,Massagem Localizada,60,1,9.75,H278674143807,H239734554960,CONFIRMADA,Odisseias
+Gonçalo Caldas,934089012,goncalocaldas10@gmail.com,24-08-2026,11:30,Limpeza de Pele,45,1,9.75,H278641379689,2544659885,CONFIRMADA,Odisseias
+Mónica Filipe,924428614,monicafilipe1997@gmail.com,24-10-2026,10:00,Massagem Localizada,60,2,14.60,H278587563074,1965892330,CONFIRMADA,Odisseias
+Cátia Gabriela Oliveira Mendes,913646598,catiagom@gmail.com,09-07-2026,17:30,Massagem Relaxante com Pedras ou Velas Quentes,60,1,9.75,H278999563922,H276812339714,CONFIRMADA,Odisseias

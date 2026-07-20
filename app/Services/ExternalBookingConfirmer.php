@@ -6,6 +6,7 @@ use App\Models\Appointment;
 use App\Models\Client;
 use App\Models\Employee;
 use App\Models\ExternalBooking;
+use App\Models\OdisseiasServiceMapping;
 use App\Models\Service;
 use App\Models\Workstation;
 use Illuminate\Support\Facades\Schema;
@@ -70,7 +71,13 @@ class ExternalBookingConfirmer
             return null;
         }
 
-        $overrides = config('odisseias.service_overrides', []);
+        // DB tem prioridade — a Marta pode corrigir/acrescentar sem deploy.
+        // O config serve de fallback caso haja entradas não migradas.
+        $dbMappings = OdisseiasServiceMapping::with('service')->get()
+            ->mapWithKeys(fn ($m) => [$m->odisseias_name => $m->service->name ?? null])
+            ->filter()
+            ->all();
+        $overrides = array_merge(config('odisseias.service_overrides', []), $dbMappings);
         $normalize = fn (?string $s) => preg_replace('/\s+/', ' ', rtrim(mb_strtolower(trim((string) $s)), '.'));
         $services = Service::all();
 
@@ -163,7 +170,7 @@ class ExternalBookingConfirmer
 
         $service = $this->resolveService($booking->product);
         if (!$service) {
-            return ['appointment' => null, 'error' => "Serviço '{$booking->product}' sem correspondência em services — mapeia em config/odisseias.php (service_overrides) antes de confirmar."];
+            return ['appointment' => null, 'error' => "Serviço '{$booking->product}' sem correspondência — usa 'Mapear e Confirmar' nesta linha ou vai a Configurações → Mapeamentos Odisseias."];
         }
 
         $client = $this->findOrCreateClient($booking);
