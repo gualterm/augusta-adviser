@@ -134,6 +134,29 @@ input:focus{outline:none;border-color:#C4975A;box-shadow:0 0 0 3px rgba(196,151,
         <label for="f_bdate">Data de nascimento <span class="opt">(opcional)</span></label>
         <input type="date" id="f_bdate" autocomplete="bday">
       </div>
+      <div class="fld">
+        <label for="f_nif">NIF <span class="opt">(opcional)</span></label>
+        <input type="text" id="f_nif" autocomplete="off" placeholder="123456789" maxlength="9" inputmode="numeric">
+      </div>
+    </div>
+
+    <!-- Secção 1b — Morada (opcional) -->
+    <div class="sec">
+      <h2>1b. Morada <span style="font-size:.8em;text-transform:none;letter-spacing:0;color:#A08060;font-weight:normal">(opcional — facilita futuras comunicações)</span></h2>
+      <div class="fld">
+        <label for="f_morada">Morada</label>
+        <input type="text" id="f_morada" autocomplete="street-address" placeholder="Rua das Flores, n.º 10">
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 2fr;gap:12px">
+        <div class="fld">
+          <label for="f_cp">Código Postal</label>
+          <input type="text" id="f_cp" autocomplete="postal-code" placeholder="4480-000" maxlength="8" inputmode="numeric">
+        </div>
+        <div class="fld">
+          <label for="f_loc">Localidade</label>
+          <input type="text" id="f_loc" autocomplete="address-level2" placeholder="Vila do Conde">
+        </div>
+      </div>
     </div>
 
     <!-- Secção 2 — RGPD -->
@@ -258,7 +281,11 @@ async function doSubmit() {
   var name  = document.getElementById('f_name').value.trim();
   var email = document.getElementById('f_email').value.trim();
   var phone = document.getElementById('f_phone').value.trim();
-  var bdate = document.getElementById('f_bdate').value;
+  var bdate   = document.getElementById('f_bdate').value;
+  var nif     = document.getElementById('f_nif')    ? document.getElementById('f_nif').value.trim()    : '';
+  var morada  = document.getElementById('f_morada') ? document.getElementById('f_morada').value.trim() : '';
+  var cp      = document.getElementById('f_cp')     ? document.getElementById('f_cp').value.trim()     : '';
+  var loc     = document.getElementById('f_loc')    ? document.getElementById('f_loc').value.trim()    : '';
   var rgpd  = document.getElementById('f_rgpd').checked;
   var mkt   = document.getElementById('f_mkt').checked;
   var errEl = document.getElementById('err-msg');
@@ -291,7 +318,7 @@ async function doSubmit() {
     var r = await fetch('/api/consent', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-      body: JSON.stringify({ name, email, phone, birth_date: bdate || null, marketing_consent: mkt, signature_data: sig })
+      body: JSON.stringify({ name, email, phone, birth_date: bdate || null, nif: nif || null, morada: morada || null, codigo_postal: cp || null, localidade: loc || null, marketing_consent: mkt, signature_data: sig })
     });
     var j = await r.json();
     if (r.ok && j.success) {
@@ -369,7 +396,7 @@ function esc(s) {
 function doNew() {
   document.getElementById('form').style.display    = 'block';
   document.getElementById('success').style.display = 'none';
-  ['f_name','f_email','f_phone','f_bdate'].forEach(function(id){ document.getElementById(id).value=''; });
+  ['f_name','f_email','f_phone','f_bdate','f_nif','f_morada','f_cp','f_loc'].forEach(function(id){ if(document.getElementById(id)) document.getElementById(id).value=''; });
   document.getElementById('f_rgpd').checked = false;
   document.getElementById('f_mkt').checked  = false;
   clearSig();
@@ -406,6 +433,18 @@ window.addEventListener('appinstalled', function() {
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('/consentimento/sw.js').catch(function(){});
 }
+
+// Pre-preenchimento via URL: /consentimento/?email=cliente@exemplo.pt
+// A Marta pode enviar o link ao cliente ou pré-preencher no tablet
+(function() {
+  var params = new URLSearchParams(window.location.search);
+  var fields = { email: 'f_email', nome: 'f_name', phone: 'f_phone', nif: 'f_nif', morada: 'f_morada', cp: 'f_cp', localidade: 'f_loc' };
+  Object.keys(fields).forEach(function(param) {
+    var val = params.get(param);
+    var el = document.getElementById(fields[param]);
+    if (val && el) el.value = decodeURIComponent(val);
+  });
+})();
 </script>
 </body>
 </html>
