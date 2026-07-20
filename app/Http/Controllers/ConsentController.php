@@ -55,6 +55,22 @@ class ConsentController extends Controller
 
         if ($client) {
             $client->update($clientUpdate);
+        } else {
+            // Criar novo cliente com os dados do formulário de consentimento
+            $client = \App\Models\Client::create([
+                'name'              => $data['name'],
+                'email'             => $data['email'],
+                'phone'             => $data['phone'] ?? null,
+                'birth_date'        => $data['birth_date'] ?? null,
+                'nif'               => $data['nif'] ?? null,
+                'morada'            => $data['morada'] ?? null,
+                'codigo_postal'     => $data['codigo_postal'] ?? null,
+                'localidade'        => $data['localidade'] ?? null,
+                'marketing_consent' => $data['marketing_consent'] ?? false,
+                'data_consent_at'   => now(),
+                'is_presencial'     => true,
+                'active'            => true,
+            ]);
         }
 
         // Guardar registo de auditoria em client_consents
