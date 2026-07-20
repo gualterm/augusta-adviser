@@ -5,7 +5,11 @@ namespace App\Filament\Resources\ExternalBookings\Tables;
 use App\Filament\Resources\Appointments\AppointmentResource;
 use App\Models\Employee;
 use App\Models\Workstation;
+use App\Models\OdisseiasServiceMapping;
+use App\Models\Service;
 use App\Services\ExternalBookingConfirmer;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
 use Filament\Actions\Action;
 use Filament\Actions\BulkAction;
 use Filament\Notifications\Notification;
@@ -131,6 +135,40 @@ class ExternalBookingsTable
                     ->default(true),
             ])
             ->recordActions([
+                Action::make('mapear_e_confirmar')
+                    ->label('Mapear e Confirmar')
+                    ->icon('heroicon-o-wrench')
+                    ->color('warning')
+                    ->visible(fn (Model $record): bool =>
+                        $record->appointment_id === null
+                        && $record->ignored_at === null
+                        && $record->external_status !== 'ANULADA'
+                        && !$record->has_conflict)
+                    ->modalHeading(fn (Model $record): string => "Mapear: «{$record->product}»")
+                    ->modalDescription('Este produto da Odisseias não tem correspondência automática. Escolhe o serviço equivalente — fica guardado e da próxima vez confirma sem erros.')
+                    ->form(fn (Model $record): array => [
+                        Select::make('service_id')
+                            ->label('Serviço Augusta')
+                            ->required()
+                            ->options(Service::orderBy('name')->pluck('name', 'id'))
+                            ->searchable()
+                            ->default(
+                                OdisseiasServiceMapping::where('odisseias_name', $record->product)
+                                    ->value('service_id')
+                            ),
+                        TextInput::make('notes')
+                            ->label('Nota (opcional)')
+                            ->maxLength(255)
+                            ->placeholder('Ex: inclui radiofrequência + drenagem 90 min'),
+                    ])
+                    ->modalSubmitActionLabel('Guardar mapeamento e confirmar')
+                    ->action(function (Model $record, array $data) {
+                        OdisseiasServiceMapping::updateOrCreate(
+                            ['odisseias_name' => $record->product],
+                            ['service_id' => $data['service_id'], 'notes' => $data['notes'] ?? null]
+                        );
+                        static::confirmRecord($record);
+                    }),
                 Action::make('confirmar')
                     ->label('Confirmar')
                     ->icon('heroicon-o-check')
