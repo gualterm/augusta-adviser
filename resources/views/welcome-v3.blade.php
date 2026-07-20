@@ -564,7 +564,7 @@ alt="Marta Macedo">
 
 <p>
 
-Marta Macedo é Consultora de Imagem e Beauty Advisor,
+Marta Macedo é Consultora de Imagem e Beauty Adviser,
 dedicada à valorização da imagem, bem-estar e confiança
 de cada cliente.
 

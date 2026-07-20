@@ -529,7 +529,7 @@ O Espaço Augusta
 
 <p>
 
-Marta Macedo é Consultora de Imagem, Beauty Advisor
+Marta Macedo é Consultora de Imagem, Beauty Adviser
 e profissional de estética, dedicada ao desenvolvimento
 da imagem, bem-estar e confiança de cada cliente.
 

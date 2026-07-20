@@ -729,7 +729,7 @@ onclick="openLightbox(this.src)">
 Sobre Marta
 </h2>
 <p>
-Marta Macedo é Consultora de Imagem e Beauty Advisor,
+Marta Macedo é Consultora de Imagem e Beauty Adviser,
 dedicada à valorização da imagem, bem-estar e confiança
 de cada cliente.
 </p>

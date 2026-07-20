@@ -63,7 +63,7 @@ class ExternalBookingConfirmer
      * pessoas). Assumir uma posição fixa (ex.: "o 2º segmento") falha nesses
      * casos. Em vez disso: tenta o texto completo primeiro, depois cada
      * segmento separado por "|", ignorando os que claramente são a unidade
-     * (só existe uma, "Augusta Beauty Advisor") ou a contagem de pessoas.
+     * (só existe uma, "Augusta Beauty Adviser") ou a contagem de pessoas.
      */
     public function resolveService(?string $productName): ?Service
     {
@@ -90,7 +90,7 @@ class ExternalBookingConfirmer
             return $match;
         }
 
-        $unitName = 'Augusta Beauty Advisor'; // única unidade da Marta na Odisseias por agora
+        $unitName = 'Augusta Beauty Adviser'; // única unidade da Marta na Odisseias por agora
         foreach (explode('|', $productName) as $segment) {
             $segment = trim($segment);
             if ($segment === '' || $normalize($segment) === $normalize($unitName)) {

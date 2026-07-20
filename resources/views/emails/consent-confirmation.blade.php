@@ -8,7 +8,7 @@
 <body style="font-family: Georgia, serif; background: #F5EFE8; margin: 0; padding: 32px 16px;">
 <table width="100%" cellpadding="0" cellspacing="0">
   <tr><td bgcolor="#FDFAF6" style="padding:20px 32px; text-align:center; border-bottom:2px solid #E8D5B7;">
-    <img src="https://augustaadviser.pt/images/logoaugusta-1a.png" alt="Augusta Beauty Advisor" style="height:90px; width:auto; display:block; margin:0 auto;">
+    <img src="https://augustaadviser.pt/images/logoaugusta-1a.png" alt="Augusta Beauty Adviser" style="height:90px; width:auto; display:block; margin:0 auto;">
   </td></tr>
 
   {{-- Body --}}
@@ -22,7 +22,7 @@
     </p>
     <p style="color:#5C3D2E; line-height:1.7; margin:0 0 24px;">
       O seu consentimento de tratamento de dados pessoais e autorização de tratamento est&eacute;tico
-      foi registado com sucesso na Augusta Beauty Advisor.
+      foi registado com sucesso na Augusta Beauty Adviser.
     </p>
 
     {{-- Details box --}}
@@ -57,7 +57,7 @@
   {{-- Footer --}}
   <tr><td bgcolor="#F5EFE8" style="padding:16px 32px; text-align:center;">
     <p style="color:#8B6914; font-size:0.78em; margin:0;">
-      Augusta Beauty Advisor &middot; Vila do Conde &middot;
+      Augusta Beauty Adviser &middot; Vila do Conde &middot;
       <a href="https://augustaadviser.pt" style="color:#8B6914;">augustaadviser.pt</a>
     </p>
   </td></tr>
