@@ -18,4 +18,11 @@ class Client extends Authenticatable implements MustVerifyEmail {
     {
         return $this->hasMany(ClientConsent::class);
     }
+    protected static function booted(): void
+    {
+        static::deleting(function (Client $client) {
+            $client->consents()->delete();
+        });
+    }
+
 }
