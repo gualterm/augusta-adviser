@@ -87,7 +87,7 @@ class ConsentController extends Controller
             'marketing_consent' => $data['marketing_consent'] ?? false,
             'ip_address'        => $request->ip(),
             'signature_data'    => $data['signature_data'] ?? null,
-            'data_consent_at'   => now(),
+            'consented_at'      => now(),
         ]);
 
         // Email de confirmação
