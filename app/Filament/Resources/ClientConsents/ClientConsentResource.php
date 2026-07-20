@@ -78,7 +78,21 @@ class ClientConsentResource extends Resource
             ])
             ->defaultSort('consented_at', 'desc')
             ->recordActions([
-                DeleteAction::make(),
+                DeleteAction::make()
+                    ->after(function (ClientConsent $record) {
+                        if (!$record->client_id) return;
+                        $latest = ClientConsent::where('client_id', $record->client_id)
+                            ->latest('consented_at')->first();
+                        $client = \App\Models\Client::find($record->client_id);
+                        if (!$client) return;
+                        $client->update($latest ? [
+                            'data_consent_at'   => $latest->consented_at,
+                            'marketing_consent' => $latest->marketing_consent,
+                        ] : [
+                            'data_consent_at'   => null,
+                            'marketing_consent' => false,
+                        ]);
+                    }),
             ])
             ->emptyStateHeading('Sem consentimentos registados')
             ->emptyStateDescription('Os consentimentos aparecem aqui quando o cliente preenche o formulário em /consentimento/ ou quando o admin regista manualmente.');
