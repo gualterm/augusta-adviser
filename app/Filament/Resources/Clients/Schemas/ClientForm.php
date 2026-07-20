@@ -60,6 +60,21 @@ class ClientForm
                             ->default(true),
                     ])
                     ->columns(2),
+
+                Section::make('RGPD / Consentimento')
+                    ->schema([
+                        Placeholder::make('consent_status')
+                            ->label('Consentimento RGPD')
+                            ->content(fn ($record) => $record?->consented_at
+                                ? new HtmlString('<span style="color:#16a34a;font-weight:600;font-size:14px;">&#10003; Formulário assinado em ' . \Carbon\Carbon::parse($record->consented_at)->format('d/m/Y H:i') . '</span>')
+                                : new HtmlString('<span style="color:#dc2626;font-weight:600;font-size:14px;">&#10007; Ainda não assinou — entregar formulário</span>')),
+                        Placeholder::make('marketing_status')
+                            ->label('Aceita Marketing')
+                            ->content(fn ($record) => (bool)($record?->marketing_consent)
+                                ? new HtmlString('<span style="color:#16a34a;font-size:14px;">&#10003; Sim</span>')
+                                : new HtmlString('<span style="color:#6b7280;font-size:14px;">&#10007; Não</span>')),
+                    ])
+                    ->columns(2),
             ]);
     }
 }
