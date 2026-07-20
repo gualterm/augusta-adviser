@@ -93,7 +93,7 @@
         </ul>
         <p class="text-xs text-gray-400 mb-4">
             Para exercer os direitos de acesso ou portabilidade, contacte
-            <a href="mailto:noreply@augustaadviser.pt" class="text-amber-600 underline">noreply@augustaadviser.pt</a>.
+            <a href="mailto:info@augustaadviser.pt" class="text-amber-600 underline">info@augustaadviser.pt</a>.
         </p>
 
         {{-- Solicitar eliminação --}}

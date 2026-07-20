@@ -48,7 +48,7 @@
     <p style="color:#5C3D2E; line-height:1.7; font-size:0.88em; margin:0 0 12px;">
       Os seus dados ser&atilde;o utilizados exclusivamente para a gest&atilde;o dos seus agendamentos e servi&ccedil;os.
       Pode exercer os seus direitos (acesso, rectifica&ccedil;&atilde;o, apagamento) atrav&eacute;s de
-      <a href="mailto:noreply@augustaadviser.pt" style="color:#C4975A; text-decoration:none;">noreply@augustaadviser.pt</a>.
+      <a href="mailto:info@augustaadviser.pt" style="color:#C4975A; text-decoration:none;">info@augustaadviser.pt</a>.
     </p>
 
     @if($consent->marketing_consent)
