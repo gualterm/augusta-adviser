@@ -11,9 +11,8 @@
 <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px; background:white; border-radius:10px; overflow:hidden; box-shadow:0 2px 12px rgba(0,0,0,0.08);">
 
   {{-- Header --}}
-  <tr><td bgcolor="#2C1810" style="padding:28px 32px; text-align:center;">
-    <div style="color:#C4975A; font-size:1.5em; letter-spacing:0.12em; font-weight:bold;">AUGUSTA</div>
-    <div style="color:#E8D5B7; font-size:0.8em; margin-top:6px;">Beauty Advisor &middot; Consultora de Imagem &amp; Est&eacute;tica</div>
+  <tr><td bgcolor="#FDFAF6" style="padding:20px 32px; text-align:center; border-bottom:2px solid #E8D5B7;">
+    <img src="https://augustaadviser.pt/images/logoaugusta-1a.png" alt="Augusta Beauty Advisor" style="height:90px; width:auto; display:block; margin:0 auto;">
   </td></tr>
 
   {{-- Body --}}
