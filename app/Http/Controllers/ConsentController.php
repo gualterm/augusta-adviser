@@ -32,7 +32,7 @@ class ConsentController extends Controller
         ]);
 
         // Procurar cliente existente por email
-        $client = Client::where('email', $data['email'])->first();
+        $client = Client::where('email', $data['email'])->orWhere('phone', $data['phone'] ?? '')->whereNotNull('phone')->first();
 
         // Campos a sobrepor no cliente (apenas os que foram preenchidos no formulário)
         $clientUpdate = array_filter([
