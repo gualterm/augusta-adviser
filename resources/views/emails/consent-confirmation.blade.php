@@ -40,7 +40,7 @@
       <p style="margin:0 0 4px;"><strong>Morada:</strong> {{ $consent->morada }}@if($consent->codigo_postal), {{ $consent->codigo_postal }}@endif@if($consent->localidade) {{ $consent->localidade }}@endif</p>
       @endif
       <hr style="border:none;border-top:1px solid #E8D5B7;margin:12px 0 4px;">
-      <p style="margin:0;"><strong>Marketing:</strong> {{ $consent->marketing_consent ? '&#10003; Aceite' : '&#10007; N&atilde;o aceite' }}</p>
+      <p style="margin:0;"><strong>Marketing:</strong> {!! $consent->marketing_consent ? '&#10003; Aceite' : '&#10007; N&atilde;o aceite' !!}</p>
     </td></tr>
     </table>
     <p style="color:#5C3D2E; line-height:1.7; font-size:0.88em; margin:0 0 12px;">
