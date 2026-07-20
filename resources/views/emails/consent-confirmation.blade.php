@@ -7,10 +7,6 @@
 </head>
 <body style="font-family: Georgia, serif; background: #F5EFE8; margin: 0; padding: 32px 16px;">
 <table width="100%" cellpadding="0" cellspacing="0">
-<tr><td align="center">
-<table width="600" cellpadding="0" cellspacing="0" style="max-width:600px; background:white; border-radius:10px; overflow:hidden; box-shadow:0 2px 12px rgba(0,0,0,0.08);">
-
-  {{-- Header --}}
   <tr><td bgcolor="#FDFAF6" style="padding:20px 32px; text-align:center; border-bottom:2px solid #E8D5B7;">
     <img src="https://augustaadviser.pt/images/logoaugusta-1a.png" alt="Augusta Beauty Advisor" style="height:90px; width:auto; display:block; margin:0 auto;">
   </td></tr>
