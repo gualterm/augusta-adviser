@@ -25,7 +25,7 @@ class ClientAuthController extends Controller
             'name'       => ['required', 'string', 'max:150'],
             'email'      => ['required', 'email', 'max:150', Rule::unique('clients', 'email')],
             'phone'      => ['required', 'string', 'max:30'],
-            'gender'     => ['required', 'in:M,F'],
+            'gender'     => ['required', 'in:feminino,masculino'],
             'nif'        => ['required', 'string', 'max:20'],
             'birth_date' => ['nullable', 'date'],
             'morada'     => ['nullable', 'string', 'max:255'],
