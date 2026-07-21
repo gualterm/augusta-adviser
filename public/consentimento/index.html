@@ -249,7 +249,7 @@ function initCanvas() {
   ctx.lineCap     = 'round';
   ctx.lineJoin    = 'round';
 }
-initCanvas();
+requestAnimationFrame(function(){ initCanvas(); });
 window.addEventListener('resize', function() {
   var img = new Image();
   img.src = canvas.toDataURL();
@@ -361,7 +361,7 @@ function doPrint() {
     '.footer{color:#999;font-size:.75em;margin-top:28px;text-align:center}',
     '@media print{.no-print{display:none}}',
     '</style></head><body>',
-    '<h1>AUGUSTA &mdash; BEAUTY ADVISOR</h1>',
+    '<h1>AUGUSTA &mdash; BEAUTY ADVISER</h1>',
     '<div class="subtitle">Consentimento de Tratamento de Dados &amp; Autoriza&ccedil;&atilde;o de Tratamento Est&eacute;tico</div>',
     '<hr>',
     '<div class="field"><strong>Nome:</strong> ' + esc(d.name) + '</div>',
