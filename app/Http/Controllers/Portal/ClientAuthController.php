@@ -22,30 +22,95 @@ class ClientAuthController extends Controller
     public function register(Request $request)
     {
         $data = $request->validate([
-            'name' => ['required', 'string', 'max:150'],
-            'email' => ['required', 'email', 'max:150', Rule::unique('clients', 'email')],
-            'phone' => ['nullable', 'string', 'max:30'],
-            'password' => ['required', 'string', 'min:6', 'confirmed'],
-            'data_consent' => ['accepted'],
+            'name'       => ['required', 'string', 'max:150'],
+            'email'      => ['required', 'email', 'max:150', Rule::unique('clients', 'email')],
+            'phone'      => ['required', 'string', 'max:30'],
+            'gender'     => ['required', 'in:M,F'],
+            'nif'        => ['required', 'string', 'max:20'],
+            'birth_date' => ['nullable', 'date'],
+            'morada'     => ['nullable', 'string', 'max:255'],
+            'password'   => ['required', 'string', 'min:6', 'confirmed'],
+        ], [
+            'name.required'      => 'O nome é obrigatório.',
+            'phone.required'     => 'O telemóvel é obrigatório.',
+            'gender.required'    => 'O género é obrigatório.',
+            'nif.required'       => 'O NIF é obrigatório.',
+            'email.required'     => 'O email é obrigatório.',
+            'email.unique'       => 'Este email já está registado.',
+            'password.required'  => 'A password é obrigatória.',
+            'password.min'       => 'A password deve ter pelo menos :min caracteres.',
+            'password.confirmed' => 'As passwords não coincidem.',
         ]);
 
         $client = Client::create([
-            'name' => $data['name'],
-            'email' => $data['email'],
-            'phone' => $data['phone'] ?? null,
-            'password' => $data['password'],
-            'active' => true,
-            'marketing_consent' => request()->boolean('marketing_consent'),
-            'data_consent_at'   => now(),
+            'name'       => $data['name'],
+            'email'      => $data['email'],
+            'phone'      => $data['phone'],
+            'gender'     => $data['gender'],
+            'nif'        => $data['nif'],
+            'birth_date' => $data['birth_date'] ?? null,
+            'address'    => $data['morada'] ?? null,
+            'morada'     => $data['morada'] ?? null,
+            'password'   => $data['password'],
+            'active'     => true,
         ]);
 
         Auth::guard('client')->login($client);
         $client->sendEmailVerificationNotification();
-
         return redirect()->route('portal.verification.notice');
     }
 
-    public function showLogin()
+    public function showConsent()
+    {
+        $client = Auth::guard('client')->user();
+        if ($client->data_consent_at) {
+            return redirect()->route('portal.dashboard');
+        }
+        return view('portal.consent', compact('client'));
+    }
+
+    public function saveConsent(Request $request)
+    {
+        $request->validate([
+            'signature_data' => ['required', 'string', 'min:10'],
+        ], [
+            'signature_data.required' => 'A assinatura é obrigatória.',
+        ]);
+
+        $client = Auth::guard('client')->user();
+
+        $consent = \App\Models\ClientConsent::create([
+            'client_id'         => $client->id,
+            'name'              => $client->name,
+            'email'             => $client->email,
+            'phone'             => $client->phone,
+            'birth_date'        => $client->birth_date,
+            'nif'               => $client->nif,
+            'morada'            => $client->address ?? $client->morada,
+            'marketing_consent' => $request->boolean('marketing_consent'),
+            'signature_data'    => $request->input('signature_data'),
+            'ip_address'        => $request->ip(),
+            'consented_at'      => now(),
+        ]);
+        $consent->refresh();
+
+        $client->update([
+            'data_consent_at'   => now(),
+            'consented_at'      => now(),
+            'marketing_consent' => $request->boolean('marketing_consent'),
+        ]);
+
+        try {
+            \Illuminate\Support\Facades\Mail::to($client->email)
+                ->send(new \App\Mail\ConsentConfirmation($consent));
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('ConsentConfirmation portal: ' . $e->getMessage());
+        }
+
+        return redirect()->route('portal.dashboard')->with('consent_done', true);
+    }
+
+        public function showLogin()
     {
         return view('portal.login');
     }
