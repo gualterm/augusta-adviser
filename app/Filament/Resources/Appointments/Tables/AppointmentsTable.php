@@ -29,7 +29,10 @@ class AppointmentsTable
                 TextColumn::make('client.name')
                     ->label('Cliente')
                     ->searchable()
-                    ->sortable(),
+                    ->sortable()
+                    ->url(fn ($record) => $record->client_id
+                        ? \App\Filament\Resources\Clients\ClientResource::getUrl('edit', ['record' => $record->client_id])
+                        : null),
                 TextColumn::make('notes')
                     ->label('Aviso')
                     ->formatStateUsing(fn (?string $state): ?string => match (true) {
