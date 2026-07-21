@@ -12,7 +12,7 @@ class ConsentConfirmation extends Mailable
 {
     use Queueable, SerializesModels;
 
-    public function __construct(public ClientConsent $consent) {}
+    public function __construct(public ClientConsent $consent, public ?string $inviteUrl = null) {}
 
     public function envelope(): Envelope
     {
