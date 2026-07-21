@@ -14,6 +14,9 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->trustProxies(at: '*');
+        $middleware->alias([
+            'client.consent' => \App\Http\Middleware\RequiresConsent::class,
+        ]);
         $middleware->redirectGuestsTo(function (\Illuminate\Http\Request $request) {
             if ($request->is('portal/*') || $request->is('portal')) {
                 return route('portal.login');
