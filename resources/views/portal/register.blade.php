@@ -58,8 +58,8 @@ button:hover{opacity:.92;}
         <label for="gender">Género *</label>
         <select id="gender" name="gender" required>
           <option value="">Selecionar</option>
-          <option value="F" {{ old('gender')=='F'?'selected':'' }}>Feminino</option>
-          <option value="M" {{ old('gender')=='M'?'selected':'' }}>Masculino</option>
+          <option value="feminino" {{ old('gender')=='F'?'selected':'' }}>Feminino</option>
+          <option value="masculino" {{ old('gender')=='M'?'selected':'' }}>Masculino</option>
         </select>
         @error('gender')<div class="error">{{ $message }}</div>@enderror
       </div>
