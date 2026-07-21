@@ -73,6 +73,17 @@ class ConsentController extends Controller
             ]);
         }
 
+        // Gerar token de convite ao portal (apenas se cliente sem password)
+        $inviteUrl = null;
+        if ($client && !$client->password) {
+            $inviteToken = \Illuminate\Support\Str::random(64);
+            $client->update([
+                'portal_invite_token'   => $inviteToken,
+                'portal_invite_sent_at' => now(),
+            ]);
+            $inviteUrl = url('/portal/activar/' . $inviteToken);
+        }
+
         // Guardar registo de auditoria em client_consents
         $consent = ClientConsent::create([
             'client_id'         => $client?->id,
@@ -93,7 +104,7 @@ class ConsentController extends Controller
 
         // Email de confirmação
         try {
-            Mail::to($data['email'])->send(new ConsentConfirmation($consent));
+            Mail::to($data['email'])->send(new ConsentConfirmation($consent, $inviteUrl));
         } catch (\Throwable $e) {
             Log::error('ConsentConfirmation email falhou: ' . $e->getMessage());
         }

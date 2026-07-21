@@ -42,7 +42,23 @@
       <hr style="border:none;border-top:1px solid #E8D5B7;margin:12px 0 4px;">
       <p style="margin:0;"><strong>Marketing:</strong> {!! $consent->marketing_consent ? '&#10003; Aceite' : '&#10007; N&atilde;o aceite' !!}</p>
     </td></tr>
-    </table>
+    
+    @if($inviteUrl)
+    <!-- Portal invite -->
+    <tr><td style="padding:24px 40px 0;">
+      <div style="background:#fdf6ee;border:1px solid #e8d5b7;border-radius:10px;padding:20px;text-align:center;">
+        <p style="color:#6f5f54;font-size:14px;margin:0 0 14px;line-height:1.5;">
+          Pode aceder ao seu portal pessoal para gerir marcações, consultar histórico e receber promoções exclusivas.
+        </p>
+        <a href="{{ $inviteUrl }}"
+           style="display:inline-block;padding:12px 28px;background:#7a6b5d;color:#fff;text-decoration:none;border-radius:30px;font-weight:600;font-size:14px;font-family:'Montserrat',sans-serif;">
+          Activar Acesso ao Portal
+        </a>
+        <p style="color:#9b8a7c;font-size:11px;margin:12px 0 0;">Este link é válido durante 7 dias.</p>
+      </div>
+    </td></tr>
+    @endif
+</table>
     <p style="color:#5C3D2E; line-height:1.7; font-size:0.88em; margin:0 0 12px;">
       Os seus dados ser&atilde;o utilizados exclusivamente para a gest&atilde;o dos seus agendamentos e servi&ccedil;os.
       Pode exercer os seus direitos (acesso, rectifica&ccedil;&atilde;o, apagamento) atrav&eacute;s de
@@ -55,6 +71,22 @@
       <a href="https://augustaadviser.pt" style="color:#8B6914;">augustaadviser.pt</a>
     </p>
   </td></tr>
+
+    @if($inviteUrl)
+    <!-- Portal invite -->
+    <tr><td style="padding:24px 40px 0;">
+      <div style="background:#fdf6ee;border:1px solid #e8d5b7;border-radius:10px;padding:20px;text-align:center;">
+        <p style="color:#6f5f54;font-size:14px;margin:0 0 14px;line-height:1.5;">
+          Pode aceder ao seu portal pessoal para gerir marcações, consultar histórico e receber promoções exclusivas.
+        </p>
+        <a href="{{ $inviteUrl }}"
+           style="display:inline-block;padding:12px 28px;background:#7a6b5d;color:#fff;text-decoration:none;border-radius:30px;font-weight:600;font-size:14px;font-family:'Montserrat',sans-serif;">
+          Activar Acesso ao Portal
+        </a>
+        <p style="color:#9b8a7c;font-size:11px;margin:12px 0 0;">Este link é válido durante 7 dias.</p>
+      </div>
+    </td></tr>
+    @endif
 </table>
 </body>
 </html>

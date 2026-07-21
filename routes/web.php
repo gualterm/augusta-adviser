@@ -16,6 +16,10 @@ Route::get('/staff', function () {
 
 Route::post('/contacto/inquerito', [InquiryController::class, 'store'])->name('inquiry.store');
 
+// Activação do portal via email (token, sem auth)
+Route::get('/portal/activar/{token}',  [\App\Http\Controllers\Portal\ClientAuthController::class, 'showActivate'])->name('portal.activate');
+Route::post('/portal/activar/{token}', [\App\Http\Controllers\Portal\ClientAuthController::class, 'processActivate'])->name('portal.activate.save');
+
 Route::prefix('portal')->name('portal.')->group(function () {
 
     // Rotas públicas (sem autenticação)

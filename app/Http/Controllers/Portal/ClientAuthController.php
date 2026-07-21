@@ -248,4 +248,44 @@ class ClientAuthController extends Controller
 
         return redirect()->route('portal.dashboard')->with('cancel_success', true);
     }
+    public function showActivate(string $token)
+    {
+        $client = \App\Models\Client::where('portal_invite_token', $token)
+            ->whereNotNull('portal_invite_sent_at')
+            ->where('portal_invite_sent_at', '>=', now()->subDays(7))
+            ->first();
+        if (!$client) {
+            return redirect()->route('portal.login')
+                ->withErrors(['email' => 'Link inválido ou expirado. Faça login ou registe-se.']);
+        }
+        return view('portal.activate', compact('client', 'token'));
+    }
+
+    public function processActivate(Request $request, string $token)
+    {
+        $client = \App\Models\Client::where('portal_invite_token', $token)
+            ->whereNotNull('portal_invite_sent_at')
+            ->where('portal_invite_sent_at', '>=', now()->subDays(7))
+            ->first();
+        if (!$client) {
+            return redirect()->route('portal.login')
+                ->withErrors(['email' => 'Link inválido ou expirado.']);
+        }
+        $request->validate([
+            'password' => ['required', 'string', 'min:6', 'confirmed'],
+        ], [
+            'password.required'  => 'A password é obrigatória.',
+            'password.min'       => 'A password deve ter pelo menos :min caracteres.',
+            'password.confirmed' => 'As passwords não coincidem.',
+        ]);
+        $client->update([
+            'password'              => $request->password,
+            'email_verified_at'     => now(),
+            'portal_invite_token'   => null,
+            'portal_invite_sent_at' => null,
+        ]);
+        Auth::guard('client')->login($client);
+        return redirect()->route('portal.dashboard');
+    }
+
 }
