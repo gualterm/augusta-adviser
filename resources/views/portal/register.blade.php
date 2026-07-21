@@ -30,7 +30,7 @@ button:hover{opacity:.92;}
 <body>
 <div class="box">
   <div class="logo-wrap">
-    <img src="{{ asset('images/logo-augusta.png') }}" alt="Augusta Adviser"
+    <img src="{{ asset('images/logoaugusta-1a.png') }}" alt="Augusta Adviser"
          onerror="this.style.display='none';document.getElementById('lt').style.display='block'">
     <div class="logo-text" id="lt">Augusta Adviser</div>
   </div>
