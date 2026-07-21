@@ -40,7 +40,7 @@ input:focus{outline:none;border-color:#C4975A;box-shadow:0 0 0 3px rgba(196,151,
 .sig-wrap{
   border:2px dashed #C4975A;border-radius:10px;background:white;
   position:relative;overflow:hidden;margin-top:12px;touch-action:none}
-#sig-canvas{width:100%;height:180px;display:block;cursor:crosshair;touch-action:none}
+#sig-canvas{touch-action:none;-webkit-user-select:none;user-select:none;width:100%;height:180px;display:block;cursor:crosshair;touch-action:none}
 .sig-hint{
   position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
   color:#C4975A;opacity:.5;font-size:.9em;pointer-events:none;
@@ -91,7 +91,7 @@ input:focus{outline:none;border-color:#C4975A;box-shadow:0 0 0 3px rgba(196,151,
   #success{display:none!important}
   #form{display:block!important}
   .rgpd-box{max-height:none;overflow:visible}
-  #sig-canvas{display:none}
+  #sig-canvas{touch-action:none;-webkit-user-select:none;user-select:none;display:none}
   .print-sig-line{display:block!important}
 }
 .print-sig-line{
@@ -249,7 +249,7 @@ function initCanvas() {
   ctx.lineCap     = 'round';
   ctx.lineJoin    = 'round';
 }
-requestAnimationFrame(function(){ initCanvas(); });
+document.addEventListener('DOMContentLoaded', function(){ initCanvas(); });
 window.addEventListener('resize', function() {
   var img = new Image();
   img.src = canvas.toDataURL();
