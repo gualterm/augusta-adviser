@@ -1,3 +1,4 @@
+<div>
 <x-filament-panels::page>
 <div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -55,3 +56,5 @@ function cp(url,id){
 </script>
 </div>
 </x-filament-panels::page>
+
+</div>
