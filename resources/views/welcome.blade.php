@@ -395,7 +395,7 @@ opacity:.9;
 }
 .footer-grid{
 display:grid;
-grid-template-columns:1fr 1fr;
+grid-template-columns:repeat(2,1fr);
 gap:40px;
 max-width:700px;
 margin:0 auto 30px;
@@ -581,10 +581,16 @@ font-size:36px;
 grid-template-columns:1fr;
 }
 .footer-grid{
-grid-template-columns:1fr;
+grid-template-columns:repeat(2,1fr);
 text-align:center;
 }
 }
+
+.footer-hours{text-align:center;padding:20px 0 8px;border-top:1px solid rgba(122,107,93,.15);margin-top:16px}
+.footer-hours h4{font-family:'Cormorant Garamond',serif;color:#7a6b5d;font-size:13px;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:12px}
+.footer-hours-list{display:flex;flex-wrap:wrap;justify-content:center;gap:6px 28px}
+.footer-hours-list span{font-size:13px;color:#6b5c50;white-space:nowrap}
+.footer-hours-list small{font-size:11px;color:#9b8a7c}
 </style>
 </head>
 <body>
@@ -967,11 +973,7 @@ info@augustaadviser.pt
 <strong>Facebook</strong><br>
 Augusta Adviser
 </p>
-<p>
-<strong>Morada</strong><br>
-Avenida Júlio Saúl Dias nº 191<br>
-4480-673 Vila do Conde
-</p>
+
 </div>
 <div class="contact-actions">
 <a
@@ -1001,6 +1003,7 @@ target="_blank"
 class="btn">
 Facebook
 </a>
+
 
 href="#inquerito"
 class="btn">
@@ -1112,14 +1115,16 @@ Augusta Adviser
 </a>
 </p>
 </div>
-<div class="footer-col">
+</div>
+<div class="footer-hours">
 <h4>Horário</h4>
 @if(isset($businessHours))
+<div class="footer-hours-list">
 @foreach($businessHours->filter(fn($h) => $h->is_open)->sortBy(fn($h) => $h->day_of_week === 0 ? 7 : $h->day_of_week) as $hour)
-<p>{{ $hour->day_name }}: {{ substr($hour->open_time, 0, 5) }}h – {{ substr($hour->close_time, 0, 5) }}h{!! $hour->lunch_start ? '<small style="color:#aaa"> (almoço '.substr($hour->lunch_start,0,5).'–'.substr($hour->lunch_end,0,5).')</small>' : '' !!}</p>
+<span>{{ $hour->day_name }}: {{ substr($hour->open_time, 0, 5) }}h–{{ substr($hour->close_time, 0, 5) }}h{!! $hour->lunch_start ? '<small> (almoço '.substr($hour->lunch_start,0,5).'–'.substr($hour->lunch_end,0,5).')</small>' : '' !!}</span>
 @endforeach
-@endif
 </div>
+@endif
 </div>
 <div class="footer-bottom">
 © 2026 Augusta Adviser. Todos os direitos reservados.
