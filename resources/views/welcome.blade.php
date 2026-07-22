@@ -1103,6 +1103,14 @@ style="color:#7a6b5d;text-decoration:none;">
 @augusta.adviser
 </a>
 </p>
+<p>Facebook:
+<a
+href="https://www.facebook.com/augusta.adviser"
+target="_blank"
+style="color:#7a6b5d;text-decoration:none;">
+Augusta Adviser
+</a>
+</p>
 </div>
 <div class="footer-col">
 <h4>Horário</h4>
