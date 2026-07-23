@@ -508,4 +508,11 @@ class ClientPortalController extends Controller
 
         return redirect()->route('portal.dashboard')->with('booking_success', true);
     }
+
+    public function promotions()
+    {
+        $promotions = \App\Models\Promotion::visible()->orderBy('valid_until')->get();
+        return view('portal.promotions', compact('promotions'));
+    }
+
 }

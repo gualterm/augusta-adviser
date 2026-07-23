@@ -62,6 +62,7 @@ Route::prefix('portal')->name('portal.')->group(function () {
             Route::post('/remarcar/{id}',          [ClientPortalController::class, 'saveReschedule'])->name('reschedule.save');
             Route::get('/suggest-slot',            [ClientPortalController::class, 'suggestSlot'])->name('suggest-slot');
             Route::get('/available-slots',         [ClientPortalController::class, 'availableSlots'])->name('available-slots');
+        Route::get('/promotions', [ClientPortalController::class, 'promotions'])->name('promotions');
             Route::post('/cancelar/{id}',          [ClientAuthController::class, 'cancelAppointment'])->name('cancel');
         });
     });
