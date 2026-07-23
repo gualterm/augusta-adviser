@@ -61,7 +61,7 @@ select:focus,input:focus{outline:none;border-color:#cdb9a9;}
     @foreach($services as $category => $categoryServices)
     <optgroup label="{{ $category }}">
     @foreach($categoryServices as $service)
-    <option value="{{ $service->id }}" data-duration="{{ $service->duration_minutes }}">
+    <option value="{{ $service->id }}" data-duration="{{ $service->duration_minutes }}" data-price="{{ $service->price }}">
       {{ $service->name }} — € {{ number_format($service->price, 2, ',', '.') }} ({{ $service->duration_minutes }} min)
     </option>
     @endforeach
@@ -84,6 +84,7 @@ select:focus,input:focus{outline:none;border-color:#cdb9a9;}
   <div class="tag" id="suggTag"></div>
   <div class="time" id="suggTime"></div>
   <div class="detail" id="suggDetail"></div>
+  <div id="price-display" style="margin-top:12px;padding:10px 14px;background:#f5ede7;border-radius:10px;font-size:14px;color:#6f5f54;display:none;"></div>
 
   <form method="POST" action="{{ route('portal.book.store') }}" id="bookForm">
     @csrf
@@ -144,11 +145,33 @@ const checkBtn   = document.getElementById('checkBtn');
 const loading    = document.getElementById('loading');
 const suggestion = document.getElementById('suggestion');
 
+@if(isset($promo) && $promo)
+const _promoPct  = {{ $promo->discount_percentage ?? 0 }};
+const _promoType = '{{ isset($promo->discount_type) ? $promo->discount_type : "percentage" }}';
+const _promoVal  = {{ isset($promo->discount_value) ? $promo->discount_value : ($promo->discount_percentage ?? 0) }};
+@else
+const _promoPct = 0, _promoType = null, _promoVal = 0;
+@endif
+function updatePriceDisplay(){
+  const div = document.getElementById('price-display');
+  if(!_promoType || !serviceEl.value){ div.style.display='none'; return; }
+  const opt = serviceEl.options[serviceEl.selectedIndex];
+  const price = parseFloat(opt && opt.dataset.price || 0);
+  if(!price){ div.style.display='none'; return; }
+  const disc = _promoType==='percentage'
+    ? price*(1-_promoVal/100)
+    : Math.max(0, price-_promoVal);
+  const fmt = n => n.toFixed(2).replace('.',',');
+  div.innerHTML = '€ <span style="text-decoration:line-through;color:#9b8a7c">'+fmt(price)+'</span>'
+    +' &rarr; <strong style="color:#5a8a52">€ '+fmt(disc)+'</strong>'
+    +' <span style="color:#9b8a7c;font-size:12px">(com promoção)</span>';
+  div.style.display='block';
+}
 function updateBtn(){
   checkBtn.disabled = !(serviceEl.value && dateEl.value && timeEl.value);
 }
 function hideHint(){ document.getElementById('hint-msg').style.display = 'none'; }
-serviceEl.addEventListener('change', () => { updateBtn(); hideHint(); });
+serviceEl.addEventListener('change', () => { updateBtn(); hideHint(); updatePriceDisplay(); });
 dateEl.addEventListener('change',    () => { updateBtn(); hideHint(); });
 timeEl.addEventListener('change',    () => { updateBtn(); hideHint(); });
 
@@ -216,6 +239,7 @@ function checkSlot(){
       document.getElementById('form_date').value    = dateEl.value;
       document.getElementById('form_time').value    = data.slot;
       document.getElementById('bookForm').style.display = 'block';
+      updatePriceDisplay();
       document.getElementById('moreBtn').style.display = 'block';
       document.getElementById('more-slots').style.display = 'none';
       document.getElementById('more-slots-list').innerHTML = '';
