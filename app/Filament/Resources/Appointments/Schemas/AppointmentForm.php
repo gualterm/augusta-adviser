@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Appointments\Schemas;
 
+use App\Models\Promotion;
 use App\Models\Service;
 use App\Models\Workstation;
 use App\Services\AppointmentConflictService;
@@ -87,7 +88,15 @@ class AppointmentForm
                                 if (! $service) {
                                     return;
                                 }
-                                $set('price', $service->price);
+                                $basePrice = (float) $service->price;
+                                $promoId = $get('promotion_id');
+                                if ($promoId) {
+                                    $promo = Promotion::find($promoId);
+                                    if ($promo && $promo->appliesToService((int) $state)) {
+                                        $basePrice = round($basePrice * (1 - $promo->discount_percentage / 100), 2);
+                                    }
+                                }
+                                $set('price', $basePrice);
                                 $set('workstation_id', null);
                                 if ($get('appointment_time')) {
                                     $endTime = Carbon::parse(

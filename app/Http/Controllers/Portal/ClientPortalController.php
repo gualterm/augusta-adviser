@@ -56,6 +56,9 @@ class ClientPortalController extends Controller
 
         if ($request->filled('promo_id')) {
             $promo = Promotion::active()->find($request->promo_id);
+        if ($promo && isset($serviceObj) && !$promo->appliesToService((int) $serviceObj->id)) {
+            $promo = null;
+        }
             if ($promo?->service_id) {
                 $promoSlot = $this->findFirstSlotForPromo($promo);
             }
@@ -78,6 +81,7 @@ class ClientPortalController extends Controller
                 ->whereIn('employee_area.area_id', $areaIds)
                 ->orderBy('employee_area.priority')
                 ->select('employees.*')
+                ->distinct()
                 ->get();
         }
         $eligibleIds = \App\Models\EmployeeCommission::where('category', $service->category)->pluck('employee_id');
@@ -256,6 +260,7 @@ class ClientPortalController extends Controller
         $preferredEnd = $preferred->copy()->addMinutes($duration)->format('H:i');
         if ($this->classifyBookingWindow($date, $preferredStr, $preferredEnd) === 'lunch') {
             foreach ($employees as $employee) {
+                if (!AppointmentConflictService::employeeWorksOnSchedule($employee->id, $date, $preferredStr, $preferredEnd)) continue;
                 if (AppointmentConflictService::employeeHasConflict($employee->id, $date, $preferredStr, $preferredEnd)) continue;
                 if (!empty($equipmentIds) && AppointmentConflictService::equipmentHasConflict($equipmentIds, $date, $preferredStr, $preferredEnd)) continue;
                 $workstation = AppointmentConflictService::findAlternativeWorkstation($service->workstation_type, $date, $preferredStr, $preferredEnd);
@@ -273,6 +278,7 @@ class ClientPortalController extends Controller
         foreach ($slots as $startTime) {
             $endTime = Carbon::createFromFormat('H:i', $startTime)->addMinutes($duration)->format('H:i');
             foreach ($employees as $employee) {
+                if (!AppointmentConflictService::employeeWorksOnSchedule($employee->id, $date, $startTime, $endTime)) continue;
                 if (AppointmentConflictService::employeeHasConflict($employee->id, $date, $startTime, $endTime)) continue;
                 if (!empty($equipmentIds) && AppointmentConflictService::equipmentHasConflict($equipmentIds, $date, $startTime, $endTime)) continue;
                 $workstation = AppointmentConflictService::findAlternativeWorkstation($service->workstation_type, $date, $startTime, $endTime);
@@ -281,7 +287,8 @@ class ClientPortalController extends Controller
                 $exact = ($startTime === $preferred->format('H:i'));
                 // Recolher todos os profissionais disponíveis para este slot
                 $available = $employees->filter(function($emp) use ($date, $startTime, $endTime) {
-                    return !\App\Services\AppointmentConflictService::employeeHasConflict($emp->id, $date, $startTime, $endTime);
+                return \App\Services\AppointmentConflictService::employeeWorksOnSchedule($emp->id, $date, $startTime, $endTime)
+                    && !\App\Services\AppointmentConflictService::employeeHasConflict($emp->id, $date, $startTime, $endTime);
                 })->map(fn($e) => ['id' => $e->id, 'name' => $e->name])->values();
                 // Para servicos a 4 maos, precisamos de 2 profissionais livres
                 if ($service->two_employees && $available->count() < 2) continue;
@@ -336,7 +343,8 @@ class ClientPortalController extends Controller
                     $startTime = $cursor->format('H:i');
                     $endTime   = $cursor->copy()->addMinutes($duration)->format('H:i');
                     foreach ($employees as $employee) {
-                        if (AppointmentConflictService::employeeHasConflict($employee->id, $date, $startTime, $endTime)) continue;
+                        if (!AppointmentConflictService::employeeWorksOnSchedule($employee->id, $date, $startTime, $endTime)) continue;
+                if (AppointmentConflictService::employeeHasConflict($employee->id, $date, $startTime, $endTime)) continue;
                         if (!empty($equipmentIds) && AppointmentConflictService::equipmentHasConflict($equipmentIds, $date, $startTime, $endTime)) continue;
                         $workstation = AppointmentConflictService::findAlternativeWorkstation($service->workstation_type, $date, $startTime, $endTime);
                         if (!$workstation) continue;
@@ -380,6 +388,7 @@ class ClientPortalController extends Controller
         $equipmentIds = $service->equipment->pluck('id')->all();
 
         foreach ($employees as $employee) {
+            if (!AppointmentConflictService::employeeWorksOnSchedule($employee->id, $data['appointment_date'], $startTime, $endTime)) continue;
             if (AppointmentConflictService::employeeHasConflict($employee->id, $data['appointment_date'], $startTime, $endTime)) continue;
             if (!empty($equipmentIds) && AppointmentConflictService::equipmentHasConflict($equipmentIds, $data['appointment_date'], $startTime, $endTime)) continue;
             $workstation = AppointmentConflictService::findAlternativeWorkstation($service->workstation_type, $data['appointment_date'], $startTime, $endTime);
@@ -416,7 +425,10 @@ class ClientPortalController extends Controller
                     $price = $service->price;
                     if ($request->filled('promo_id')) {
                         $pr = Promotion::active()->find($request->promo_id);
-                        if ($pr && $pr->service_id == $service->id) {
+        if ($pr && isset($service) && !$pr->appliesToService((int) $service->id)) {
+            $pr = null; // serviço excluído desta promoção
+        }
+                        if ($pr && ($pr->service_id === null || $pr->service_id == $service->id)) {
                             $price = round($price * (1 - $pr->discount_percentage / 100), 2);
                         }
                     }
@@ -427,7 +439,7 @@ class ClientPortalController extends Controller
             // Envia email de confirmação com anexo .ics — se falhar (ex.: SMTP
             // em baixo), não deve impedir a marcação de ficar criada.
             try {
-                $client->notify(new \App\Notifications\AppointmentConfirmedNotification($appointment));
+                $client->notify(new \App\Notifications\AppointmentConfirmedNotification($appointment, $pr ?? null));
             } catch (\Throwable $e) {
                 report($e);
             }
@@ -511,7 +523,7 @@ class ClientPortalController extends Controller
 
     public function promotions()
     {
-        $promotions = \App\Models\Promotion::visible()->orderBy('valid_until')->get();
+        $promotions = \App\Models\Promotion::active()->with('service')->orderBy('valid_to')->get();
         return view('portal.promotions', compact('promotions'));
     }
 

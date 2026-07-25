@@ -163,4 +163,29 @@ class AppointmentConflictService
             'workstation_name' => $workstation->name,
         ];
     }
+
+    /**
+     * Verifica se o profissional está escalado para trabalhar no slot pedido.
+     * Consulta employee_schedules (day_of_week ISO: 1=Segunda … 7=Domingo).
+     */
+    public static function employeeWorksOnSchedule(
+        int    $employeeId,
+        string $date,
+        string $startTime,
+        string $endTime
+    ): bool {
+        $dayOfWeek = \Carbon\Carbon::parse($date)->isoWeekday(); // 1=Seg … 7=Dom
+        $schedule  = \Illuminate\Support\Facades\DB::table('employee_schedules')
+            ->where('employee_id', $employeeId)
+            ->where('day_of_week', $dayOfWeek)
+            ->where('is_working', true)
+            ->first();
+        if (!$schedule) return false;
+        $slotStart = \Carbon\Carbon::parse("$date $startTime");
+        $slotEnd   = \Carbon\Carbon::parse("$date $endTime");
+        $workStart = \Carbon\Carbon::parse("$date {$schedule->start_time}");
+        $workEnd   = \Carbon\Carbon::parse("$date {$schedule->end_time}");
+        return $slotStart->gte($workStart) && $slotEnd->lte($workEnd);
+    }
+
 }

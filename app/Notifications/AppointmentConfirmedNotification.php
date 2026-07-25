@@ -1,8 +1,8 @@
 <?php
-
 namespace App\Notifications;
 
 use App\Models\Appointment;
+use App\Models\Promotion;
 use Carbon\Carbon;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
@@ -10,15 +10,15 @@ use Illuminate\Notifications\Notification;
 /**
  * Email de confirmação enviado ao cliente sempre que faz uma marcação no
  * portal (App\Http\Controllers\Portal\ClientPortalController::book).
- * Pedido do Gualter/Marta (2026-07-06): o cliente nunca recebia nenhuma
- * confirmação por email — isto cobre esse gap, com um anexo .ics para o
- * cliente adicionar a marcação ao calendário do telemóvel/Outlook/PC.
+ * Mostra os detalhes da marcação, promoção/desconto (se aplicável) e
+ * inclui um ficheiro .ics para adicionar ao calendário.
  */
 class AppointmentConfirmedNotification extends Notification
 {
-    public function __construct(protected Appointment $appointment)
-    {
-    }
+    public function __construct(
+        protected Appointment $appointment,
+        protected ?Promotion  $promotion = null
+    ) {}
 
     public function via($notifiable): array
     {
@@ -42,9 +42,26 @@ class AppointmentConfirmedNotification extends Notification
             $message->line('A tua marcação ficou confirmada. Aqui ficam os detalhes:');
         }
 
-        $message->line('**Serviço:** ' . ($appointment->service->name ?? '—'))
+        $message
+            ->line('**Serviço:** ' . ($appointment->service->name ?? '—'))
             ->line('**Data:** ' . $date . ' às ' . $time)
-            ->line('**Profissional:** ' . ($appointment->employee->name ?? '—'))
+            ->line('**Profissional:** ' . ($appointment->employee->name ?? '—'));
+
+        // Promoção e preço
+        if ($this->promotion) {
+            $originalPrice   = (float) ($appointment->service->price   ?? 0);
+            $discountedPrice = (float) ($appointment->price            ?? $originalPrice);
+            $discount        = (int)   $this->promotion->discount_percentage;
+
+            $message
+                ->line('**Promoção:** ' . $this->promotion->title . ' — ' . $discount . '% desconto')
+                ->line('**Preço:** €' . number_format($discountedPrice, 2, ',', '.')
+                    . ' *(preço original: €' . number_format($originalPrice, 2, ',', '.') . ')*');
+        } elseif ($appointment->price) {
+            $message->line('**Preço:** €' . number_format((float) $appointment->price, 2, ',', '.'));
+        }
+
+        $message
             ->line('Em anexo enviamos um ficheiro de calendário para adicionares esta marcação ao Outlook, telemóvel ou computador.')
             ->line('Se precisares de remarcar ou cancelar, podes fazê-lo na tua área de cliente.')
             ->salutation(new \Illuminate\Support\HtmlString('Com os melhores cumprimentos,<br>Augusta Adviser'));
@@ -67,8 +84,12 @@ class AppointmentConfirmedNotification extends Notification
 
         $summary     = 'Augusta Adviser — ' . ($appointment->service->name ?? 'Marcação');
         $description = 'Marcação na Augusta Adviser'
-            . ($appointment->employee?->name ? ' com ' . $appointment->employee->name : '')
-            . '.';
+            . ($appointment->employee?->name ? ' com ' . $appointment->employee->name : '');
+
+        if ($this->promotion) {
+            $description .= ' | Promoção: ' . $this->promotion->title
+                . ' (' . (int) $this->promotion->discount_percentage . '% desconto)';
+        }
 
         $lines = [
             'BEGIN:VCALENDAR',

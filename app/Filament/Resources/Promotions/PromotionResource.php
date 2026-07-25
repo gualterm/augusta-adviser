@@ -9,6 +9,7 @@ use Carbon\Carbon;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\CheckboxList;
 use Filament\Forms\Components\Toggle;
 use Filament\Resources\Resource;
 use App\Filament\Traits\HasRolePermissions;
@@ -44,8 +45,9 @@ class PromotionResource extends Resource
             Select::make('type')
                 ->label('Tipo')
                 ->options([
-                    'daily'  => '📅 Diária (amanhã)',
-                    'weekly' => '📆 Semanal (próxima semana)',
+                    'daily'   => '📅 Diária (amanhã)',
+                    'weekly'  => '📆 Semanal (próxima semana)',
+                    'special' => '🎉 Especial (Natal, Páscoa, Noivos…)',
                 ])
                 ->required()
                 ->live()
@@ -82,6 +84,22 @@ class PromotionResource extends Resource
                 ->label('Até')
                 ->required(),
 
+
+            CheckboxList::make('excluded_service_ids')
+                ->label('Excluir serviços desta promoção')
+                ->helperText('Serviços assinalados NÃO terão desconto, mesmo que a promoção seja "Todos os serviços".')
+                ->options(
+                    \App\Models\Service::where('active', true)
+                        ->orderBy('category')
+                        ->orderBy('name')
+                        ->get()
+                        ->mapWithKeys(fn ($s) => [$s->id => $s->category . ' — ' . $s->name])
+                        ->toArray()
+                )
+                ->visible(fn (callable $get) => $get('service_id') === null || $get('service_id') === '')
+                ->columns(3)
+                ->gridDirection('row')
+                ->columnSpanFull(),
             Toggle::make('active')
                 ->label('Ativa')
                 ->default(true)

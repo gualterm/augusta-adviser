@@ -16,12 +16,14 @@ class Promotion extends Model
         'valid_from',
         'valid_to',
         'active',
+        'excluded_service_ids',
     ];
 
     protected $casts = [
         'valid_from' => 'date',
         'valid_to'   => 'date',
-        'active'     => 'boolean',
+        'active'              => 'boolean',
+        'excluded_service_ids' => 'array',
         'discount_percentage' => 'decimal:2',
     ];
 
@@ -43,6 +45,18 @@ class Promotion extends Model
     {
         return $this->valid_from->format('Y-m-d') <= $date
             && $this->valid_to->format('Y-m-d') >= $date;
+    }
+
+    /** Verifica se esta promoção se aplica a um determinado serviço */
+    public function appliesToService(int $serviceId): bool
+    {
+        // Promoção específica: só aplica ao serviço configurado
+        if ($this->service_id !== null) {
+            return (int) $this->service_id === $serviceId;
+        }
+        // Promoção geral: verifica excepções
+        $excluded = $this->excluded_service_ids ?? [];
+        return ! in_array($serviceId, array_map('intval', $excluded));
     }
 
     /** Preço com desconto */

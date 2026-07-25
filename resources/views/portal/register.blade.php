@@ -91,7 +91,32 @@ button:hover{opacity:.92;}
     <label for="password_confirmation">Confirmar Password *</label>
     <input type="password" id="password_confirmation" name="password_confirmation" required>
 
-    <button type="submit">Continuar para Consentimento RGPD →</button>
+    
+    {{-- Como nos conheceu? --}}
+    <div class="form-group" style="margin-bottom:18px;">
+        <label for="referral_source" style="display:block;margin-bottom:6px;font-size:13px;color:#6f5f54;font-weight:600;">
+            Como nos conheceu?
+        </label>
+        <select name="referral_source" id="referral_source"
+            style="width:100%;padding:10px 14px;border:1px solid #e0d4cc;border-radius:10px;font-size:14px;color:#4a3f38;background:#fff;"
+            onchange="document.getElementById('referral_other_wrap').style.display=this.value==='outro'?'block':'none'">
+            <option value="">— Selecione —</option>
+            <option value="facebook"   {{ old('referral_source')=='facebook'   ? 'selected' : '' }}>Facebook</option>
+            <option value="instagram"  {{ old('referral_source')=='instagram'  ? 'selected' : '' }}>Instagram</option>
+            <option value="odisseias"  {{ old('referral_source')=='odisseias'  ? 'selected' : '' }}>Odisseias</option>
+            <option value="outro"      {{ old('referral_source')=='outro'      ? 'selected' : '' }}>Outro</option>
+        </select>
+    </div>
+    <div id="referral_other_wrap" style="display:{{ old('referral_source')=='outro' ? 'block' : 'none' }};margin-bottom:18px;">
+        <label for="referral_other" style="display:block;margin-bottom:6px;font-size:13px;color:#6f5f54;font-weight:600;">
+            Qual?
+        </label>
+        <input type="text" name="referral_other" id="referral_other"
+            value="{{ old('referral_other') }}"
+            placeholder="Ex: amigo/a, revista, evento…"
+            style="width:100%;padding:10px 14px;border:1px solid #e0d4cc;border-radius:10px;font-size:14px;color:#4a3f38;box-sizing:border-box;">
+    </div>
+<button type="submit">Continuar para Consentimento RGPD →</button>
   </form>
 
   <div class="foot">Já tens conta? <a href="{{ route('portal.login') }}">Iniciar Sessão</a></div>

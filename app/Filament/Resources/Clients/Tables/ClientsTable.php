@@ -35,6 +35,16 @@ class ClientsTable
                 TextColumn::make('phone')
                     ->label('Telefone')
                     ->searchable(),
+TextColumn::make('referral_source')
+                    ->label('Origem')
+                    ->formatStateUsing(fn($state) => match($state) {
+                        'facebook'  => 'Facebook',
+                        'instagram' => 'Instagram',
+                        'odisseias' => 'Odisseias',
+                        'outro'     => 'Outro',
+                        default     => '—',
+                    })
+                    ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('email')
                     ->label('Email')
                     ->searchable(),

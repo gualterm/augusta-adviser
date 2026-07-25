@@ -40,6 +40,21 @@ class ClientForm
                             ->label('Telefone')
                             ->tel()
                             ->maxLength(50),
+Select::make('referral_source')
+                    ->label('Como nos conheceu?')
+                    ->options([
+                        'facebook'  => 'Facebook',
+                        'instagram' => 'Instagram',
+                        'odisseias' => 'Odisseias',
+                        'outro'     => 'Outro',
+                    ])
+                    ->placeholder('—')
+                    ->nullable(),
+                TextInput::make('referral_other')
+                    ->label('Outro — qual?')
+                    ->maxLength(255)
+                    ->nullable()
+                    ->visible(fn ($get) => $get('referral_source') === 'outro'),
                         TextInput::make('email')
                             ->label('Email')
                             ->email()

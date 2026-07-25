@@ -30,6 +30,8 @@ class ClientAuthController extends Controller
             'birth_date' => ['nullable', 'date'],
             'morada'     => ['nullable', 'string', 'max:255'],
             'password'   => ['required', 'string', 'min:6', 'confirmed'],
+            'referral_source' => ['nullable', 'string', 'max:100'],
+            'referral_other'  => ['nullable', 'string', 'max:255'],
         ], [
             'name.required'      => 'O nome é obrigatório.',
             'phone.required'     => 'O telemóvel é obrigatório.',
@@ -53,6 +55,8 @@ class ClientAuthController extends Controller
             'morada'     => $data['morada'] ?? null,
             'password'   => $data['password'],
             'active'     => true,
+            'referral_source' => $data['referral_source'] ?? null,
+            'referral_other'  => ($data['referral_source'] ?? null) === 'outro' ? ($data['referral_other'] ?? null) : null,
         ]);
 
         Auth::guard('client')->login($client);
