@@ -23,6 +23,7 @@ class ActivityLogger
             actorName:   $actorName,
             subjectType: 'client',
             subjectId:   $client->id,
+            clientId:    $client->id,
             description: "Cliente \"{$client->name}\" registado",
             metadata:    [
                 'email'           => $client->email,
@@ -47,6 +48,7 @@ class ActivityLogger
             actorName:   $actorName,
             subjectType: 'appointment',
             subjectId:   $appointment->id,
+            clientId:    $appointment->client_id,
             description: "{$service} — {$date} às {$time} com {$employee}",
             metadata:    [
                 'service_id'  => $appointment->service_id,
@@ -72,6 +74,7 @@ class ActivityLogger
             actorName:   $actorName,
             subjectType: 'appointment',
             subjectId:   $appointment->id,
+            clientId:    $appointment->client_id,
             description: "{$service} — {$date} cancelada" . ($reason ? " ({$reason})" : ''),
             metadata:    [
                 'service'    => $service,
@@ -95,6 +98,7 @@ class ActivityLogger
             actorName:   $actorName,
             subjectType: 'appointment',
             subjectId:   $appointment->id,
+            clientId:    $appointment->client_id,
             description: "{$service} remarcada de {$oldDate} para {$newDate} às {$newTime}",
             metadata:    [
                 'service'   => $service,
@@ -116,6 +120,7 @@ class ActivityLogger
         ?string $actorName   = null,
         ?string $subjectType = null,
         ?int    $subjectId   = null,
+        ?int    $clientId    = null,
         array   $metadata    = []
     ): void {
         try {

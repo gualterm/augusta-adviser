@@ -28,6 +28,22 @@ class ListActivityLogs extends ListRecords
                 ->outlined()
                 ->form([
                     // ── Critérios ──────────────────────────────────────────
+                    Select::make('client_id')
+                        ->label('Cliente (opcional)')
+                        ->placeholder('Todos os clientes')
+                        ->nullable()
+                        ->live()
+                        ->searchable()
+                        ->getSearchResultsUsing(fn (string $search) =>
+                            \App\Models\Client::where('name', 'like', "%{$search}%")
+                                ->limit(20)
+                                ->pluck('name', 'id')
+                                ->toArray()
+                        )
+                        ->getOptionLabelUsing(fn ($value) =>
+                            \App\Models\Client::find($value)?->name ?? $value
+                        ),
+
                     Select::make('event_type')
                         ->label('Tipo de evento')
                         ->options(\App\Models\ActivityLog::eventLabels())
@@ -70,6 +86,9 @@ class ListActivityLogs extends ListRecords
                         ->content(function (callable $get): HtmlString {
                             $query = DB::table('activity_logs');
 
+                            if (!empty($get('client_id'))) {
+                                $query->where('client_id', $get('client_id'));
+                            }
                             if (!empty($get('event_type'))) {
                                 $query->where('event_type', $get('event_type'));
                             }
@@ -144,6 +163,7 @@ class ListActivityLogs extends ListRecords
 
                     // 2. Query com critérios
                     $query = DB::table('activity_logs');
+                    if (!empty($data['client_id']))   $query->where('client_id', $data['client_id']);
                     if (!empty($data['event_type']))  $query->where('event_type', $data['event_type']);
                     if (!empty($data['source']))       $query->where('source', $data['source']);
                     if (($data['backfill_only'] ?? '0') === '1') {

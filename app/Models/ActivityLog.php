@@ -15,6 +15,7 @@ class ActivityLog extends Model
         'subject_id',
         'description',
         'metadata',
+        'client_id',
         'created_at',
     ];
 
