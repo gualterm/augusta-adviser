@@ -27,26 +27,23 @@ class AugustaDashboardStats extends BaseWidget
         // ── Profissional: só as suas marcações + Marta ──────────────
         if ($role === 'profissional') {
             $employee = Employee::where('user_id', $user->id)->first();
-            $empIds   = [2]; // Marta sempre incluída
+            $empIds   = [2];
             if ($employee && $employee->id !== 2) {
                 $empIds[] = $employee->id;
             }
-
             $hoje   = Appointment::where('appointment_date', $today)
                 ->whereIn('status', $active)
                 ->where(fn ($q) => $q->whereIn('employee_id', $empIds)
                                      ->orWhereIn('secondary_employee_id', $empIds))
                 ->count();
-
             $semana = Appointment::whereBetween('appointment_date', [$weekStart, $weekEnd])
                 ->whereIn('status', $active)
                 ->where(fn ($q) => $q->whereIn('employee_id', $empIds)
                                      ->orWhereIn('secondary_employee_id', $empIds))
                 ->count();
-
             return [
                 Stat::make('📅 Marcações Hoje', $hoje)
-                    ->description(Carbon::today()->translatedFormat('l, d \d\e F'))
+                    ->description(Carbon::today()->translatedFormat('l, d \de F'))
                     ->descriptionIcon('heroicon-m-calendar-days')
                     ->color('info'),
                 Stat::make('🗓️ Esta Semana', $semana)
@@ -64,7 +61,7 @@ class AugustaDashboardStats extends BaseWidget
 
         $stats = [
             Stat::make('📅 Marcações Hoje', $marcacoesHoje)
-                ->description(Carbon::today()->translatedFormat('l, d \d\e F'))
+                ->description(Carbon::today()->translatedFormat('l, d \de F'))
                 ->descriptionIcon('heroicon-m-calendar-days')
                 ->color('info'),
             Stat::make('🗓️ Esta Semana', $marcacoesSemana)
@@ -77,7 +74,7 @@ class AugustaDashboardStats extends BaseWidget
                 ->color('warning'),
         ];
 
-        // ── Admin: adiciona stats financeiras ────────────────────────
+        // ── Admin: adiciona stats financeiras com link ───────────────
         if ($role === 'admin') {
             $fatHoje   = Appointment::where('appointment_date', $today)->whereIn('status', $paid)->sum('price');
             $fatMes    = Appointment::whereBetween('appointment_date', [$monthStart, $today])->whereIn('status', $paid)->sum('price');
@@ -85,17 +82,20 @@ class AugustaDashboardStats extends BaseWidget
 
             $stats = array_merge($stats, [
                 Stat::make('💶 Faturação Hoje', '€ ' . number_format((float) $fatHoje, 2, ',', '.'))
-                    ->description('serviços confirmados/concluídos')
+                    ->description('serviços confirmados/concluídos ↗')
                     ->descriptionIcon('heroicon-m-check-circle')
-                    ->color('success'),
+                    ->color('success')
+                    ->url('/admin/relatorio-faturacao?tipo=hoje'),
                 Stat::make('📊 Faturação Mensal', '€ ' . number_format((float) $fatMes, 2, ',', '.'))
-                    ->description(Carbon::now()->format('F Y'))
+                    ->description(Carbon::now()->format('F Y') . ' ↗')
                     ->descriptionIcon('heroicon-m-chart-bar')
-                    ->color('success'),
+                    ->color('success')
+                    ->url('/admin/relatorio-faturacao?tipo=mes'),
                 Stat::make('💰 Total Semanal Equipa', '€ ' . number_format((float) $fatSemana, 2, ',', '.'))
-                    ->description($weekStart . ' – ' . $weekEnd . ' · conf. + concl.')
+                    ->description($weekStart . ' – ' . $weekEnd . ' · conf. + concl. ↗')
                     ->descriptionIcon('heroicon-m-user-group')
-                    ->color('primary'),
+                    ->color('primary')
+                    ->url('/admin/relatorio-faturacao?tipo=semana'),
             ]);
         }
 

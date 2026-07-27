@@ -7,6 +7,7 @@ use Filament\Http\Middleware\DispatchServingFilamentEvent;
 use App\Filament\Pages\Dashboard;
 use App\Filament\Pages\FreeSlots;
 use App\Filament\Pages\PagamentosDiarios;
+use App\Filament\Pages\RelatorioFaturacao;
 use Filament\Panel;
 use Filament\View\PanelsRenderHook;
 use Filament\PanelProvider;
@@ -51,7 +52,7 @@ class AdminPanelProvider extends PanelProvider
             ->colors(['primary' => Color::Amber])
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\Filament\Pages')
-            ->pages([Analytics::class, Dashboard::class, FreeSlots::class, PagamentosDiarios::class])
+            ->pages([Analytics::class, Dashboard::class, FreeSlots::class, PagamentosDiarios::class, RelatorioFaturacao::class])
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\Filament\Widgets')
             ->widgets([AccountWidget::class, AugustaDashboardStats::class, TodayAppointmentsWidget::class, WeeklyByProfessionalWidget::class])
             ->middleware([
