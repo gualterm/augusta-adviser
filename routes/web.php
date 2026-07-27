@@ -73,3 +73,5 @@ Route::get('/admin/ambiente', function () {
     if (auth()->user()->role !== 'admin') return redirect('/admin');
     return view('admin.ambiente');
 });
+
+Route::middleware(['auth'])->get('/pagamentos-diarios/print', [\App\Http\Controllers\PagamentosDiariosController::class, 'print'])->name('pagamentos-diarios.print');
