@@ -19,7 +19,6 @@ class PagamentosDiarios extends Page
 
     public function mount(): void
     {
-        abort_unless(auth()->user()?->role === 'admin', 403);
         $this->selectedDate = today()->toDateString();
     }
 
