@@ -71,6 +71,12 @@ class ClientPortalController extends Controller
 
         $services = $allServices->groupBy('category');
 
+        // Massagens sempre no topo da lista
+        if ($services->has('Massagens')) {
+            $massagens = $services->pull('Massagens');
+            $services = collect(['Massagens' => $massagens])->merge($services);
+        }
+
         return view('portal.book', [
             'services'           => $services,
             'promo'              => $promo,
