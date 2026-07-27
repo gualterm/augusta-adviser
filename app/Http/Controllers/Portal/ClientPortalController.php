@@ -44,30 +44,38 @@ class ClientPortalController extends Controller
 
     public function showBook(Request $request)
     {
-        $services = Service::query()
+        $allServices = Service::query()
             ->where('active', true)
             ->orderBy('category')
             ->orderBy('name')
-            ->get()
-            ->groupBy('category');
+            ->get();
 
-        $promo     = null;
-        $promoSlot = null;
+        $promo              = null;
+        $promoSlot          = null;
+        $serviceDiscountMap = [];
 
         if ($request->filled('promo_id')) {
-            $promo = Promotion::active()->find($request->promo_id);
-        if ($promo && isset($serviceObj) && !$promo->appliesToService((int) $serviceObj->id)) {
-            $promo = null;
-        }
-            if ($promo?->service_id) {
-                $promoSlot = $this->findFirstSlotForPromo($promo);
+            $promo = Promotion::active()->with('serviceDiscounts')->find($request->promo_id);
+            if ($promo) {
+                // Apenas serviços cobertos pela promoção (excluídos ficam de fora)
+                $allServices = $allServices->filter(fn ($s) => $promo->appliesToService($s->id));
+                // Mapa service_id => desconto % efectivo
+                foreach ($allServices as $s) {
+                    $serviceDiscountMap[$s->id] = $promo->getEffectiveDiscount($s->id);
+                }
+                if ($promo->service_id) {
+                    $promoSlot = $this->findFirstSlotForPromo($promo);
+                }
             }
         }
 
+        $services = $allServices->groupBy('category');
+
         return view('portal.book', [
-            'services'  => $services,
-            'promo'     => $promo,
-            'promoSlot' => $promoSlot,
+            'services'           => $services,
+            'promo'              => $promo,
+            'promoSlot'          => $promoSlot,
+            'serviceDiscountMap' => $serviceDiscountMap,
         ]);
     }
 
