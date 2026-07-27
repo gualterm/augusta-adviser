@@ -14,7 +14,7 @@ class RolePermissionResource extends Resource
     protected static ?string $model = RolePermission::class;
     protected static string|BackedEnum|null $navigationIcon  = 'heroicon-o-shield-check';
     protected static ?string $navigationLabel = 'Permissoes';
-    protected static string|UnitEnum|null $navigationGroup = 'Administracao';
+    protected static string|UnitEnum|null $navigationGroup = 'Administração';
     protected static ?int    $navigationSort  = 99;
     protected static ?string $modelLabel      = 'Permissao';
     protected static ?string $pluralModelLabel = 'Permissoes';

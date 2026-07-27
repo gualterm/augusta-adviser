@@ -17,7 +17,7 @@ class PagamentosDiarios extends Page
     public static function getNavigationSort(): ?int { return 6; }
     public function getTitle(): string { return 'Pagamentos Diários'; }
 
-    public static function canAccess(): bool
+    public static function shouldRegisterNavigation(): bool
     {
         return auth()->user()?->role === 'admin';
     }
