@@ -41,7 +41,7 @@ class WeeklyByProfessionalWidget extends Widget
             return [
                 'name'      => $emp->name,
                 'count'     => $appts->count(),
-                'revenue'   => $appts->where('employee_id', $emp->id)->sum('price'),
+                'revenue'   => $appts->where('employee_id', $emp->id)->whereIn('status', ['confirmed', 'completed'])->sum('price'),
                 'confirmed' => $appts->whereIn('status', ['confirmed', 'completed'])->count(),
             ];
         })->filter(fn ($d) => $d['count'] > 0);

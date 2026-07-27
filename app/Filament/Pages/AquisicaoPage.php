@@ -44,7 +44,7 @@ class AquisicaoPage extends Page
                 DB::raw('COUNT(a.id) as total_marcacoes'),
                 DB::raw("SUM(CASE WHEN a.status = 'cancelled' THEN 1 ELSE 0 END) as canceladas"),
                 DB::raw("SUM(CASE WHEN a.status IN ('scheduled','confirmed','completed') THEN 1 ELSE 0 END) as activas"),
-                DB::raw('SUM(CASE WHEN a.price IS NOT NULL THEN a.price ELSE 0 END) as valor_total'),
+                DB::raw("SUM(CASE WHEN a.status IN ('scheduled','confirmed','completed') AND a.price IS NOT NULL THEN a.price ELSE 0 END) as valor_total"),
             )
             ->groupBy('canal')
             ->orderByDesc('total_marcacoes');
