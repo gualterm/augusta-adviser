@@ -35,7 +35,7 @@ class PagamentosDiarios extends Page
             $appts = Appointment::where('appointment_date', $date)
                 ->where('employee_id', $emp->id)
                 ->whereIn('status', ['confirmed', 'completed'])
-                ->with('service')
+                ->with(['service', 'client'])
                 ->orderBy('appointment_time')
                 ->get();
 
@@ -52,6 +52,7 @@ class PagamentosDiarios extends Page
                 $totalCommission += $commission;
                 $breakdown[] = [
                     'time'       => $appt->appointment_time,
+                    'client'     => $appt->client->name ?? '—',
                     'service'    => $appt->service->name ?? 'desconhecido',
                     'category'   => $category ?? '—',
                     'price'      => (float) $appt->price,
