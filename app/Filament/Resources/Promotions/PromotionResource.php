@@ -76,7 +76,8 @@ class PromotionResource extends Resource
                 ->minValue(1)
                 ->maxValue(100)
                 ->suffix('%')
-                ->required(),
+                ->required()
+                ->live(onBlur: true),
 
             DatePicker::make('valid_from')
                 ->label('De')
@@ -90,14 +91,23 @@ class PromotionResource extends Resource
             CheckboxList::make('excluded_service_ids')
                 ->label('Excluir serviços desta promoção')
                 ->helperText('Serviços assinalados NÃO terão desconto, mesmo que a promoção seja "Todos os serviços".')
-                ->options(
-                    \App\Models\Service::where('active', true)
+                ->options(function (callable $get) {
+                    $pct = (float) ($get('discount_percentage') ?? 0);
+                    return \App\Models\Service::where('active', true)
                         ->orderBy('category')
                         ->orderBy('name')
                         ->get()
-                        ->mapWithKeys(fn ($s) => [$s->id => $s->category . ' — ' . $s->name])
-                        ->toArray()
-                )
+                        ->mapWithKeys(function ($s) use ($pct) {
+                            $label = $s->category . ' — ' . $s->name;
+                            if ($pct > 0 && $s->price > 0) {
+                                $orig = number_format((float) $s->price, 2, ',', '.');
+                                $disc = number_format(round((float) $s->price * (1 - $pct / 100), 2), 2, ',', '.');
+                                $label .= '  ·  €' . $orig . ' → €' . $disc;
+                            }
+                            return [$s->id => $label];
+                        })
+                        ->toArray();
+                })
                 ->visible(fn (callable $get) => $get('service_id') === null || $get('service_id') === '')
                 ->columns(3)
                 ->gridDirection('row')
