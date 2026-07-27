@@ -10,6 +10,7 @@ use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\CheckboxList;
+use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Toggle;
 use Filament\Resources\Resource;
@@ -117,16 +118,32 @@ class PromotionResource extends Resource
                                 ->toArray()
                         )
                         ->searchable()
-                        ->required(),
+                        ->required()
+                        ->live(),
                     TextInput::make('discount_percent')
                         ->label('Desconto (%)')
                         ->numeric()
                         ->minValue(1)
                         ->maxValue(100)
                         ->suffix('%')
-                        ->required(),
+                        ->required()
+                        ->live(),
+                    Placeholder::make('preco_preview')
+                        ->label('Previsão de preço')
+                        ->content(function (callable $get): string {
+                            $serviceId = $get('service_id');
+                            $pct = (float) $get('discount_percent');
+                            if (!$serviceId || !$pct) return '—';
+                            $service = \App\Models\Service::find($serviceId);
+                            if (!$service || !$service->price) return '—';
+                            $original   = (float) $service->price;
+                            $discounted = round($original * (1 - $pct / 100), 2);
+                            return '€ ' . number_format($original, 2, ',', '.')
+                                 . ' → € ' . number_format($discounted, 2, ',', '.')
+                                 . ' (−' . $pct . '%)';
+                        }),
                 ])
-                ->columns(2)
+                ->columns(3)
                 ->addActionLabel('+ Adicionar desconto específico')
                 ->visible(fn (callable $get) => !$get('service_id'))
                 ->columnSpanFull(),
