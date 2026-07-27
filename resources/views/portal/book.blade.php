@@ -67,8 +67,14 @@ select:focus,input:focus{outline:none;border-color:#cdb9a9;}
     @foreach($services as $category => $categoryServices)
     <optgroup label="{{ $category }}">
     @foreach($categoryServices as $service)
+    @php
+      $__pct  = $serviceDiscountMap[$service->id] ?? null;
+      $__orig = number_format($service->price, 2, ',', '.');
+      $__disc = $__pct ? number_format(round($service->price * (1 - $__pct / 100), 2), 2, ',', '.') : null;
+      $__priceLabel = $__disc ? "€ {$__orig} → € {$__disc} (-{$__pct}%)" : "€ {$__orig}";
+    @endphp
     <option value="{{ $service->id }}" data-duration="{{ $service->duration_minutes }}" data-price="{{ $service->price }}">
-      {{ $service->name }} — € {{ number_format($service->price, 2, ',', '.') }} ({{ $service->duration_minutes }} min)
+      {{ $service->name }} — {{ $__priceLabel }} ({{ $service->duration_minutes }} min)
     </option>
     @endforeach
     </optgroup>
