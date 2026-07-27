@@ -16,7 +16,13 @@
     <div class="promotions-grid">
         @foreach($promotions as $promo)
         <div class="promo-card">
-            <div class="promo-badge">{{ number_format($promo->discount_percentage, 0) }}%</div>
+            <div class="promo-badge">
+                @if($promo->serviceDiscounts->isNotEmpty())
+                    até {{ number_format($promo->discount_percentage, 0) }}%
+                @else
+                    {{ number_format($promo->discount_percentage, 0) }}%
+                @endif
+            </div>
             <h3 class="promo-title">{{ $promo->title }}</h3>
             <p class="promo-service">
                 @if($promo->service)
@@ -25,6 +31,16 @@
                     ✨ Todos os serviços
                 @endif
             </p>
+            @if($promo->serviceDiscounts->isNotEmpty())
+            @php
+                $overrideGroups = $promo->serviceDiscounts->load('service')->groupBy('discount_percent')->sortKeysDesc();
+            @endphp
+            <div style="font-size:11.5px;color:#9b8a7c;line-height:1.6;">
+                @foreach($overrideGroups as $pct => $items)
+                <span>🏷️ {{ number_format($pct,0) }}%: {{ $items->map(fn($i)=>$i->service?->name)->filter()->implode(', ') }}</span><br>
+                @endforeach
+            </div>
+            @endif
             <p class="promo-validity">Válida até {{ \Carbon\Carbon::parse($promo->valid_to)->format('d/m/Y') }}</p>
             <a href="{{ route('portal.book', ['promo_id' => $promo->id]) }}" class="btn-promo">Aproveitar</a>
         </div>

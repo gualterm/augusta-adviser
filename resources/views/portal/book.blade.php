@@ -153,10 +153,12 @@ const suggestion = document.getElementById('suggestion');
 
 @if(isset($promo) && $promo)
 const _promoPct  = {{ $promo->discount_percentage ?? 0 }};
-const _promoType = '{{ isset($promo->discount_type) ? $promo->discount_type : "percentage" }}';
-const _promoVal  = {{ isset($promo->discount_value) ? $promo->discount_value : ($promo->discount_percentage ?? 0) }};
+const _promoType = 'percentage';
+const _promoVal  = {{ $promo->discount_percentage ?? 0 }};
+const _serviceDiscounts = {!! json_encode($serviceDiscountMap ?? []) !!};
 @else
 const _promoPct = 0, _promoType = null, _promoVal = 0;
+const _serviceDiscounts = {};
 @endif
 function updatePriceDisplay(){
   const div = document.getElementById('price-display');

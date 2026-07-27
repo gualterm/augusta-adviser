@@ -10,6 +10,7 @@ use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\CheckboxList;
+use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Toggle;
 use Filament\Resources\Resource;
 use App\Filament\Traits\HasRolePermissions;
@@ -99,6 +100,35 @@ class PromotionResource extends Resource
                 ->visible(fn (callable $get) => $get('service_id') === null || $get('service_id') === '')
                 ->columns(3)
                 ->gridDirection('row')
+                ->columnSpanFull(),
+            Repeater::make('serviceDiscounts')
+                ->label('Descontos específicos por serviço')
+                ->helperText('Serviços aqui listados terão uma percentagem diferente do desconto global. Os restantes (não excluídos) usam o desconto global.')
+                ->relationship('serviceDiscounts')
+                ->schema([
+                    Select::make('service_id')
+                        ->label('Serviço')
+                        ->options(
+                            \App\Models\Service::where('active', true)
+                                ->orderBy('category')
+                                ->orderBy('name')
+                                ->get()
+                                ->mapWithKeys(fn ($s) => [$s->id => $s->category . ' — ' . $s->name])
+                                ->toArray()
+                        )
+                        ->searchable()
+                        ->required(),
+                    TextInput::make('discount_percent')
+                        ->label('Desconto (%)')
+                        ->numeric()
+                        ->minValue(1)
+                        ->maxValue(100)
+                        ->suffix('%')
+                        ->required(),
+                ])
+                ->columns(2)
+                ->addActionLabel('+ Adicionar desconto específico')
+                ->visible(fn (callable $get) => !$get('service_id'))
                 ->columnSpanFull(),
             Toggle::make('active')
                 ->label('Ativa')

@@ -32,7 +32,7 @@ class ClientPortalController extends Controller
             ->orderByDesc('appointment_time')
             ->limit(20)
             ->get();
-        $promotions = Promotion::active()->orderBy('valid_to')->get();
+        $promotions = Promotion::active()->with('serviceDiscounts')->orderBy('valid_to')->get();
 
         return view('portal.dashboard', [
             'client'       => $client,
