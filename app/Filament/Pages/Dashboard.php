@@ -24,6 +24,7 @@ class Dashboard extends BaseDashboard
             return [
                 AugustaDashboardStats::class,
                 OdisseiasRevenueStats::class,
+                PackSessoesWidget::class,
                 TodayAppointmentsWidget::class,
                 WeeklyByProfessionalWidget::class,
                 RevenueByWeekChart::class,
@@ -31,7 +32,6 @@ class Dashboard extends BaseDashboard
                 ProfessionalHistoryChart::class,
                 ServiceBreakdownChart::class,
                 AppointmentsByMonthChart::class,
-                PackSessoesWidget::class,
             ];
         }
 
