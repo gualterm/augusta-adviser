@@ -7,7 +7,15 @@
         @if(empty($clientes))
             <p class="text-sm text-gray-500">Nenhum pack activo de momento.</p>
         @else
-        <table class="w-full text-sm">
+        <table class="w-full text-sm" style="table-layout: fixed;">
+            <colgroup>
+                <col style="width: 30%">
+                <col style="width: 10%">
+                <col style="width: 13%">
+                <col style="width: 13%">
+                <col style="width: 13%">
+                <col style="width: 21%">
+            </colgroup>
             <thead>
                 <tr class="border-b text-left text-gray-500">
                     <th class="py-2 pr-4">Cliente</th>
