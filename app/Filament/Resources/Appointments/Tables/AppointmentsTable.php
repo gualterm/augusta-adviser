@@ -1,9 +1,11 @@
 <?php
 namespace App\Filament\Resources\Appointments\Tables;
 use Filament\Actions\Action;
+use Filament\Actions\BulkAction;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Forms\Components\Select as FormSelect;
 use Filament\Forms\Components\Textarea;
 use Filament\Notifications\Notification;
 use Filament\Tables\Columns\TextColumn;
@@ -11,6 +13,7 @@ use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 class AppointmentsTable
 {
@@ -196,6 +199,38 @@ class AppointmentsTable
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
+
+                    BulkAction::make('alterar_estado')
+                        ->label('Alterar Estado')
+                        ->icon('heroicon-o-pencil-square')
+                        ->color('warning')
+                        ->form([
+                            FormSelect::make('status')
+                                ->label('Novo estado para as marcações seleccionadas')
+                                ->options([
+                                    'scheduled' => 'Agendada',
+                                    'confirmed' => 'Confirmada',
+                                    'completed' => 'Concluída',
+                                    'cancelled' => 'Cancelada',
+                                ])
+                                ->required(),
+                        ])
+                        ->action(function (Collection $records, array $data) {
+                            $count = $records->count();
+                            $records->each->update(['status' => $data['status']]);
+                            $label = match($data['status']) {
+                                'scheduled' => 'Agendada',
+                                'confirmed' => 'Confirmada',
+                                'completed' => 'Concluída',
+                                'cancelled' => 'Cancelada',
+                                default     => $data['status'],
+                            };
+                            Notification::make()
+                                ->success()
+                                ->title($count . ' marcações actualizadas para "' . $label . '"')
+                                ->send();
+                        })
+                        ->deselectRecordsAfterCompletion(),
                     DeleteBulkAction::make()->visible(fn() => \App\Filament\Resources\Appointments\AppointmentResource::canDeleteAny()),
                 ]),
             ]);
