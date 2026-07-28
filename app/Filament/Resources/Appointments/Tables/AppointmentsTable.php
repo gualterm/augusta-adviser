@@ -98,6 +98,20 @@ class AppointmentsTable
                         ->where('appointment_date', '<', now()->toDateString())
                         ->where('status', 'scheduled'))
                     ->toggle(),
+                Filter::make('sobrepostas')
+                    ->label('⚠ Marcações sobrepostas')
+                    ->query(fn (Builder $query): Builder => $query
+                        ->whereNotNull('employee_id')
+                        ->whereNotIn('status', ['cancelled'])
+                        ->whereExists(function ($sub) {
+                            $sub->from('appointments as a2')
+                                ->whereColumn('a2.employee_id', 'appointments.employee_id')
+                                ->whereColumn('a2.appointment_date', 'appointments.appointment_date')
+                                ->whereColumn('a2.appointment_time', 'appointments.appointment_time')
+                                ->whereColumn('a2.id', '<>', 'appointments.id')
+                                ->whereNotIn('a2.status', ['cancelled']);
+                        }))
+                    ->toggle(),
                 Filter::make('com_erros')
                     ->label('🚨 Todas com erros')
                     ->query(fn (Builder $query): Builder => $query->where(function ($q) {
@@ -106,7 +120,18 @@ class AppointmentsTable
                           ->orWhere('price', '<=', 0)
                           ->orWhere(fn ($s) => $s
                               ->where('appointment_date', '<', now()->toDateString())
-                              ->where('status', 'scheduled'));
+                              ->where('status', 'scheduled'))
+                          ->orWhere(fn ($s) => $s
+                              ->whereNotNull('employee_id')
+                              ->whereNotIn('status', ['cancelled'])
+                              ->whereExists(function ($sub) {
+                                  $sub->from('appointments as a2')
+                                      ->whereColumn('a2.employee_id', 'appointments.employee_id')
+                                      ->whereColumn('a2.appointment_date', 'appointments.appointment_date')
+                                      ->whereColumn('a2.appointment_time', 'appointments.appointment_time')
+                                      ->whereColumn('a2.id', '<>', 'appointments.id')
+                                      ->whereNotIn('a2.status', ['cancelled']);
+                              }));
                     }))
                     ->toggle(),
                 SelectFilter::make('status')
