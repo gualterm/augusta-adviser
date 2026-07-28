@@ -10,6 +10,7 @@ use App\Filament\Widgets\RevenueByMonthChart;
 use App\Filament\Widgets\ProfessionalHistoryChart;
 use App\Filament\Widgets\ServiceBreakdownChart;
 use App\Filament\Widgets\AppointmentsByMonthChart;
+use App\Filament\Widgets\PackSessoesWidget;
 use Filament\Pages\Dashboard as BaseDashboard;
 use Illuminate\Support\Facades\Auth;
 
@@ -30,6 +31,7 @@ class Dashboard extends BaseDashboard
                 ProfessionalHistoryChart::class,
                 ServiceBreakdownChart::class,
                 AppointmentsByMonthChart::class,
+                PackSessoesWidget::class,
             ];
         }
 
