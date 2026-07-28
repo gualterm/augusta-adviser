@@ -65,7 +65,8 @@ class AppointmentsTable
                 TextColumn::make('workstation.name')
                     ->label('Posto')
                     ->searchable()
-                    ->sortable(),
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('service.name')
                     ->label('Serviço')
                     ->searchable()
