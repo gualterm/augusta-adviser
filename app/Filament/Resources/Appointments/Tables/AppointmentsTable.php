@@ -88,6 +88,27 @@ class AppointmentsTable
                     ->label('⚠ Sem profissional')
                     ->query(fn (Builder $query): Builder => $query->whereDoesntHave('employee'))
                     ->toggle(),
+                Filter::make('sem_preco')
+                    ->label('⚠ Sem preço definido')
+                    ->query(fn (Builder $query): Builder => $query->whereNull('price')->orWhere('price', '<=', 0))
+                    ->toggle(),
+                Filter::make('passadas_agendadas')
+                    ->label('⚠ Passadas ainda Agendadas')
+                    ->query(fn (Builder $query): Builder => $query
+                        ->where('appointment_date', '<', now()->toDateString())
+                        ->where('status', 'scheduled'))
+                    ->toggle(),
+                Filter::make('com_erros')
+                    ->label('🚨 Todas com erros')
+                    ->query(fn (Builder $query): Builder => $query->where(function ($q) {
+                        $q->whereDoesntHave('employee')
+                          ->orWhereNull('price')
+                          ->orWhere('price', '<=', 0)
+                          ->orWhere(fn ($s) => $s
+                              ->where('appointment_date', '<', now()->toDateString())
+                              ->where('status', 'scheduled'));
+                    }))
+                    ->toggle(),
                 SelectFilter::make('status')
                     ->label('Estado')
                     ->options([
