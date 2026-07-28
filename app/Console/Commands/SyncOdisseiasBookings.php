@@ -207,6 +207,19 @@ class SyncOdisseiasBookings extends Command
             }
 
             $conflict = $confirmer->detectConflict($existing, $employee, $workstation);
+
+            // Voucher check: se o conflito é com outra reserva Odisseias que
+            // partilha o mesmo voucher → mesma sessão multi-pessoa (ex: "2 Pessoas")
+            // → não é conflito real, são dois clientes do mesmo produto.
+            if ($conflict && $existing->voucher_number) {
+                $conflictEB = ExternalBooking::where('appointment_id', $conflict->id)
+                    ->where('channel', self::CHANNEL)
+                    ->first();
+                if ($conflictEB && $conflictEB->voucher_number === $existing->voucher_number) {
+                    $conflict = null; // mesmo voucher = mesma sessão, não é conflito real
+                }
+            }
+
             $existing->update([
                 'has_conflict' => $conflict !== null,
                 'conflict_note' => $conflict ? $confirmer->conflictNote($existing, $conflict) : null,
