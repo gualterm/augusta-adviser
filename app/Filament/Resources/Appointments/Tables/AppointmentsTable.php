@@ -5,6 +5,7 @@ use Filament\Actions\BulkAction;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select as FormSelect;
 use Filament\Forms\Components\Textarea;
 use Filament\Notifications\Notification;
@@ -20,6 +21,7 @@ class AppointmentsTable
     public static function configure(Table $table): Table
     {
         return $table
+            ->defaultSort(fn (Builder $query): Builder => $query->orderBy('appointment_date', 'asc')->orderBy('appointment_time', 'asc'))
             ->columns([
                 TextColumn::make('appointment_date')
                     ->label('Data')
@@ -83,6 +85,28 @@ class AppointmentsTable
                     ->money('EUR'),
             ])
             ->filters([
+                Filter::make('periodo')
+                    ->label('📅 Período')
+                    ->form([
+                        DatePicker::make('de')
+                            ->label('De')
+                            ->default(today())
+                            ->displayFormat('d/m/Y'),
+                        DatePicker::make('ate')
+                            ->label('Até')
+                            ->displayFormat('d/m/Y'),
+                    ])
+                    ->query(function (Builder $query, array $data): Builder {
+                        return $query
+                            ->when($data['de'] ?? null, fn ($q, $v) => $q->whereDate('appointment_date', '>=', $v))
+                            ->when($data['ate'] ?? null, fn ($q, $v) => $q->whereDate('appointment_date', '<=', $v));
+                    })
+                    ->indicateUsing(function (array $data): array {
+                        $indicators = [];
+                        if ($data['de'] ?? null) $indicators[] = 'De: ' . \Carbon\Carbon::parse($data['de'])->format('d/m/Y');
+                        if ($data['ate'] ?? null) $indicators[] = 'Até: ' . \Carbon\Carbon::parse($data['ate'])->format('d/m/Y');
+                        return $indicators;
+                    }),
                 Filter::make('com_aviso')
                     ->label('⚠ Pedido de horário de almoço por confirmar')
                     ->query(fn (Builder $query): Builder => $query->where('notes', 'like', '%horário de almoço%'))
@@ -93,7 +117,7 @@ class AppointmentsTable
                     ->toggle(),
                 Filter::make('sem_preco')
                     ->label('⚠ Sem preço definido')
-                    ->query(fn (Builder $query): Builder => $query->whereNull('price')->orWhere('price', '<=', 0))
+                    ->query(fn (Builder $query): Builder => $query->where(fn ($q) => $q->whereNull('price')->orWhere('price', '<=', 0)))
                     ->toggle(),
                 Filter::make('passadas_agendadas')
                     ->label('⚠ Passadas ainda Agendadas')
@@ -135,7 +159,7 @@ class AppointmentsTable
                                       ->whereColumn('a2.id', '<>', 'appointments.id')
                                       ->whereNotIn('a2.status', ['cancelled']);
                               }));
-                    }))
+                    })->distinct())
                     ->toggle(),
                 SelectFilter::make('status')
                     ->label('Estado')
@@ -186,7 +210,6 @@ class AppointmentsTable
                             'status' => 'cancelled',
                             'notes'  => 'Pedido recusado pela clínica: ' . $reason,
                         ]);
-
                         try {
                             $record->client?->notify(new \App\Notifications\AppointmentCancelledNotification($record, $reason));
                             Notification::make()->warning()->title('Marcação recusada e email enviado ao cliente')->send();
@@ -199,7 +222,6 @@ class AppointmentsTable
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
-
                     BulkAction::make('alterar_estado')
                         ->label('Alterar Estado')
                         ->icon('heroicon-o-pencil-square')
@@ -235,7 +257,6 @@ class AppointmentsTable
                 ]),
             ]);
     }
-
     /**
      * Distingue um pedido de horário de almoço (criado por
      * ClientPortalController::book/saveReschedule) de uma nota qualquer —
