@@ -31,6 +31,11 @@ class EditAppointment extends EditRecord
                     ->format('H:i:s');
             }
         }
+        // Marcação cancelada: sem verificação de conflitos
+        if (($data['status'] ?? '') === 'cancelled') {
+            return $data;
+        }
+
         if ($force) {
             if (AppointmentConflictService::workstationAtCapacity(
                 $data['workstation_id'],

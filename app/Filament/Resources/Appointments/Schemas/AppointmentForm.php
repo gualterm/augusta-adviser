@@ -194,6 +194,12 @@ class AppointmentForm
                                 $start = $get('appointment_time');
                                 $end = $get('end_time');
 
+                                $status = $get('status');
+                                if ($status === 'cancelled') {
+                                    return new HtmlString(
+                                        '<span style="color:#9b8a7c;">Marcação cancelada — conflitos ignorados.</span>'
+                                    );
+                                }
                                 if (! $employeeId || ! $date || ! $start || ! $end) {
                                     return new HtmlString(
                                         '<span style="color:#9b8a7c;">Preenche profissional, data e hora para verificar disponibilidade.</span>'
