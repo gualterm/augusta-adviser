@@ -3,12 +3,36 @@
     $data     = $this->getData();
     $titulo   = $this->getTitulo();
     $showDate = $this->tipo !== 'hoje';
+    $meses    = $this->getMeses();
 @endphp
-
 <div class="space-y-4">
     <a href="/admin" class="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-amber-700 transition">
         ← Voltar ao Dashboard
     </a>
+
+    {{-- Barra de filtros --}}
+    <div class="flex flex-wrap items-center gap-3 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 px-4 py-3">
+        @if($this->tipo === 'mes')
+        <div class="flex items-center gap-2">
+            <label class="text-xs font-medium text-gray-500 uppercase tracking-wide">Mês</label>
+            <select wire:model.live="mes"
+                class="text-sm border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-1.5 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:ring-2 focus:ring-amber-500 focus:border-amber-500">
+                @foreach($meses as $valor => $label)
+                    <option value="{{ $valor }}">{{ $label }}</option>
+                @endforeach
+            </select>
+        </div>
+        @endif
+        <div class="flex items-center gap-2">
+            <label class="text-xs font-medium text-gray-500 uppercase tracking-wide">Origem</label>
+            <select wire:model.live="origem"
+                class="text-sm border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-1.5 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:ring-2 focus:ring-amber-500 focus:border-amber-500">
+                <option value="todas">Todas</option>
+                <option value="Odisseias">Odisseias</option>
+                <option value="Direto">Direta</option>
+            </select>
+        </div>
+    </div>
 
     <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
         <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
@@ -25,7 +49,6 @@
                 </div>
             </div>
         </div>
-
         @if ($data['appointments']->isEmpty())
         <div class="py-16 text-center text-gray-400">
             <div class="text-4xl mb-3">📭</div>
