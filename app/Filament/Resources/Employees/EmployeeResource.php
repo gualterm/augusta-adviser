@@ -17,7 +17,7 @@ use Filament\Tables\Table;
 
 class EmployeeResource extends Resource
 {
-    protected static ?string $navigationGroup = 'Configurações';
+    protected static string|\UnitEnum|null $navigationGroup = 'Configurações';
 
     use HasRolePermissions;
     protected static ?string $model = Employee::class;

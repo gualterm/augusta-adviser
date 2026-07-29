@@ -27,7 +27,7 @@ use Filament\Tables\Table;
 
 class PromotionResource extends Resource
 {
-    protected static ?string $navigationGroup = 'Operações';
+    protected static string|\UnitEnum|null $navigationGroup = 'Operações';
     protected static ?int $navigationSort = 10;
 
     use HasRolePermissions;

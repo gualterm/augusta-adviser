@@ -19,7 +19,7 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 class UserResource extends Resource
 {
-    protected static ?string $navigationGroup = 'Configurações';
+    protected static string|\UnitEnum|null $navigationGroup = 'Configurações';
 
     use HasRolePermissions;
     protected static ?string $model = User::class;
