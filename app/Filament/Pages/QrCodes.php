@@ -28,7 +28,7 @@ class QrCodes extends Page
 
     public static function getNavigationSort(): ?int
     {
-        return 11;
+        return 10;
     }
 
     public function getTitle(): string|\Illuminate\Contracts\Support\Htmlable

@@ -17,7 +17,7 @@ use Filament\Tables\Table;
 class InquiryResource extends Resource
 {
     protected static string|\UnitEnum|null $navigationGroup = 'Operações';
-    protected static ?int $navigationSort = 7;
+    protected static ?int $navigationSort = 3;
 
     use HasRolePermissions;
     protected static ?string $model = Inquiry::class;

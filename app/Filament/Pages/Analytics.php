@@ -35,7 +35,7 @@ class Analytics extends Page
 
     public static function getNavigationSort(): ?int
     {
-        return 3;
+        return 11;
     }
 
     public function getTitle(): string|\Illuminate\Contracts\Support\Htmlable

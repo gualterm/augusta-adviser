@@ -10,6 +10,7 @@ use App\Filament\Pages\PagamentosDiarios;
 use App\Filament\Pages\RelatorioFaturacao;
 use Filament\Panel;
 use Filament\View\PanelsRenderHook;
+use Filament\Navigation\NavigationGroup;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
 use App\Filament\Widgets\AugustaDashboardStats;
@@ -53,6 +54,12 @@ class AdminPanelProvider extends PanelProvider
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\Filament\Pages')
             ->pages([Analytics::class, Dashboard::class, FreeSlots::class, PagamentosDiarios::class, RelatorioFaturacao::class])
+            ->navigationGroups([
+                NavigationGroup::make('Operações'),
+                NavigationGroup::make('Configurações'),
+                NavigationGroup::make('Sistema e Log'),
+                NavigationGroup::make('Administração'),
+            ])
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\Filament\Widgets')
             ->widgets([AccountWidget::class, AugustaDashboardStats::class, TodayAppointmentsWidget::class, WeeklyByProfessionalWidget::class])
             ->middleware([
