@@ -33,6 +33,9 @@ class ActivityLog extends Model
             'appointment.cancelled'     => 'Marcação cancelada',
             'appointment.rescheduled'   => 'Marcação remarcada',
             'appointment.completed'     => 'Marcação concluída',
+            'odisseias.sync'            => 'Sync Odisseias',
+            'odisseias.confirmed'       => 'Odisseias → Agenda',
+            'odisseias.conflict'        => 'Conflito Odisseias',
         ];
     }
 

@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Models\ActivityLog;
 use App\Models\Appointment;
 use App\Models\Employee;
 use App\Models\ExternalBooking;
@@ -12,28 +13,6 @@ use App\Services\OdisseiasClient;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
 
-/**
- * Sincroniza o portal de parceiros da Odisseias com a área "Marcações
- * Externas" (tabela `external_bookings`, channel='odisseias') — pedido da
- * Marta/Gualter (2026-07-03): já não chega um import manual pontual, é
- * preciso manter isto sempre atualizado (sync horário automático + botão
- * "Sincronizar agora" no Filament).
- *
- * Este comando NUNCA apaga/cancela marcações reais sozinho — quando uma
- * reserva aparece ANULADA na Odisseias mas já tinha sido confirmada para a
- * agenda, fica sinalizada como conflito para a Marta decidir à mão.
- *
- * Modo automático: controlado por `odisseias_settings.auto_confirm` (toggle
- * no Filament) — quando ligado, reservas CONFIRMADA/REALIZADA sem conflito
- * de horário são criadas sozinhas na agenda real a cada sync. Quando
- * desligado, todas ficam à espera de confirmação manual na lista.
- * --auto-confirm força o modo automático só nesta corrida (útil para testar).
- *
- * Uso:
- *   php artisan odisseias:sync                    # dry-run
- *   php artisan odisseias:sync --commit            # grava (upsert das reservas + auto-confirma se ligado)
- *   php artisan odisseias:sync --commit --auto-confirm
- */
 class SyncOdisseiasBookings extends Command
 {
     protected $signature = 'odisseias:sync
@@ -129,14 +108,8 @@ class SyncOdisseiasBookings extends Command
                     $existing = ExternalBooking::create($attrs);
                 }
             } else {
-                // Só conta/grava como "atualizada" se algo realmente mudou — antes
-                // isto contava as 30 reservas em toda a corrida mesmo sem
-                // alterações reais, o que confundia o relatório do sync.
                 $mudou = false;
                 foreach ($comparableAttrs as $key => $value) {
-                    // appointment_date tem cast 'date' (Carbon) — (string) direto
-                    // inclui a hora ("...00:00:00") e nunca batia certo com a data
-                    // simples vinda do portal, fazia parecer que mudava sempre.
                     $current = $key === 'appointment_date'
                         ? $existing->appointment_date?->toDateString()
                         : $existing->{$key};
@@ -157,14 +130,10 @@ class SyncOdisseiasBookings extends Command
                 continue;
             }
 
-            // Já resolvida manualmente antes (cancelada, confirmada com conflito
-            // ignorado, etc.) — não voltar a mexer.
             if ($existing->ignored_at) {
                 continue;
             }
 
-            // Reserva anulada no canal depois de já estar confirmada na agenda real
-            // — nunca cancela sozinho, só sinaliza para decisão manual.
             if ($estado === 'ANULADA' && $existing->appointment_id && $existing->appointment?->status !== 'completed') {
                 $existing->update([
                     'has_conflict' => true,
@@ -175,12 +144,9 @@ class SyncOdisseiasBookings extends Command
             }
 
             if ($existing->appointment_id) {
-                continue; // já confirmada, nada mais a fazer
+                continue;
             }
 
-            // Reserva anulada e nunca esteve na agenda — não há nada para confirmar
-            // nem para chocar, ignora sem sinalizar (evita ruído de "conflitos"
-            // fantasma contra reservas que já não vão a lado nenhum).
             if ($estado === 'ANULADA') {
                 if ($existing->has_conflict) {
                     $existing->update(['has_conflict' => false, 'conflict_note' => null, 'conflict_appointment_id' => null]);
@@ -188,11 +154,6 @@ class SyncOdisseiasBookings extends Command
                 continue;
             }
 
-            // Esta reserva pode já ter sido importada manualmente antes de o sync
-            // existir (ex.: o comando odisseias:import correu em 2026-07-02 para o
-            // "gap" inicial) — essa marcação guarda o nº de reserva dentro de
-            // `notes`. Se encontrarmos essa marcação, é a MESMA reserva, não um
-            // conflito: ligamos em vez de sinalizar ou tentar criar outra vez.
             $jaImportada = Appointment::where('notes', 'like', "%{$existing->reserva_number}%")->first();
             if ($jaImportada) {
                 $existing->update([
@@ -208,15 +169,12 @@ class SyncOdisseiasBookings extends Command
 
             $conflict = $confirmer->detectConflict($existing, $employee, $workstation);
 
-            // Voucher check: se o conflito é com outra reserva Odisseias que
-            // partilha o mesmo voucher → mesma sessão multi-pessoa (ex: "2 Pessoas")
-            // → não é conflito real, são dois clientes do mesmo produto.
             if ($conflict && $existing->voucher_number) {
                 $conflictEB = ExternalBooking::where('appointment_id', $conflict->id)
                     ->where('channel', self::CHANNEL)
                     ->first();
                 if ($conflictEB && $conflictEB->voucher_number === $existing->voucher_number) {
-                    $conflict = null; // mesmo voucher = mesma sessão, não é conflito real
+                    $conflict = null;
                 }
             }
 
@@ -228,6 +186,20 @@ class SyncOdisseiasBookings extends Command
 
             if ($conflict) {
                 $sinalizadasConflito++;
+
+                // Log conflito
+                ActivityLog::create([
+                    'event_type'   => 'odisseias.conflict',
+                    'source'       => 'system',
+                    'actor_name'   => 'Sync Odisseias',
+                    'subject_type' => 'external_booking',
+                    'subject_id'   => $existing->id,
+                    'description'  => "Conflito: {$existing->client_name} — {$existing->product} em " .
+                                      Carbon::parse($existing->appointment_date)->format('d/m/Y') . ' ' .
+                                      substr($existing->appointment_time, 0, 5),
+                    'created_at'   => now(),
+                ]);
+
                 continue;
             }
 
@@ -235,6 +207,21 @@ class SyncOdisseiasBookings extends Command
                 $result = $confirmer->confirm($existing, $employee, $workstation);
                 if ($result['appointment']) {
                     $confirmadasAuto++;
+                    $appt = $result['appointment'];
+
+                    // Log confirmação automática
+                    ActivityLog::create([
+                        'event_type'   => 'odisseias.confirmed',
+                        'source'       => 'external',
+                        'actor_name'   => 'Sync Odisseias',
+                        'subject_type' => 'appointment',
+                        'subject_id'   => $appt->id,
+                        'description'  => "Odisseias → Agenda: {$existing->client_name} — {$existing->product} em " .
+                                          Carbon::parse($existing->appointment_date)->format('d/m/Y') . ' ' .
+                                          substr($existing->appointment_time, 0, 5) .
+                                          " (reserva {$existing->reserva_number})",
+                        'created_at'   => now(),
+                    ]);
                 } else {
                     $erros[] = "Reserva {$existing->reserva_number} ({$existing->client_name}): {$result['error']}";
                 }
@@ -246,9 +233,25 @@ class SyncOdisseiasBookings extends Command
         $this->line("  Reservas novas: {$novas}");
         $this->line("  Reservas atualizadas: {$atualizadas}");
         $this->line("  Confirmadas automaticamente para a agenda: {$confirmadasAuto}");
-        $this->line("  Ligadas a marcações já existentes (importadas antes do sync existir): {$ligadasAJaExistentes}");
+        $this->line("  Ligadas a marcações já existentes: {$ligadasAJaExistentes}");
         $this->line("  Sinalizadas com conflito de horário: {$sinalizadasConflito}");
         $this->line("  Sinalizadas: anuladas na Odisseias já na agenda: {$sinalizadasAnulada}");
+
+        // Log resumo do sync (sempre que corre em modo --commit)
+        if ($commit) {
+            $temMovimento = $novas + $atualizadas + $confirmadasAuto + $sinalizadasConflito + $sinalizadasAnulada > 0;
+            ActivityLog::create([
+                'event_type'   => 'odisseias.sync',
+                'source'       => 'system',
+                'actor_name'   => 'Sync Odisseias',
+                'subject_type' => 'system',
+                'subject_id'   => 0,
+                'description'  => $temMovimento
+                    ? "Sync: {$novas} novas · {$atualizadas} atualizadas · {$confirmadasAuto} → agenda · {$sinalizadasConflito} conflitos"
+                    : 'Sync: sem alterações',
+                'created_at'   => now(),
+            ]);
+        }
 
         if ($erros) {
             $this->newLine();
