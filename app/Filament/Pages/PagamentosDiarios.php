@@ -14,7 +14,7 @@ class PagamentosDiarios extends Page
     public static function getNavigationIcon(): string { return 'heroicon-o-banknotes'; }
     public static function getNavigationLabel(): string { return 'Pagamentos Diários'; }
     public static function getNavigationGroup(): ?string { return 'Operações'; }
-    public static function getNavigationSort(): ?int { return 6; }
+    public static function getNavigationSort(): ?int { return 9; }
     public function getTitle(): string { return 'Pagamentos Diários'; }
 
     public function mount(): void

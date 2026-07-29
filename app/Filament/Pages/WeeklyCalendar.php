@@ -20,6 +20,7 @@ class WeeklyCalendar extends Page
     protected static ?string $title = 'Calendário Semanal';
 
     protected static string|UnitEnum|null $navigationGroup = 'Operações';
+    protected static ?int $navigationSort = 4;
 
     protected string $view = 'filament.pages.weekly-calendar';
 

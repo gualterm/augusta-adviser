@@ -30,6 +30,7 @@ class AppointmentResource extends Resource
     protected static ?string $pluralModelLabel = 'Agenda';
 
     protected static string|UnitEnum|null $navigationGroup = 'Operações';
+    protected static ?int $navigationSort = 1;
 
     protected static ?string $recordTitleAttribute = 'id';
 

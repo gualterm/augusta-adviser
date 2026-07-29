@@ -28,9 +28,14 @@ class Analytics extends Page
         return 'Análise & Histórico';
     }
 
+    public static function getNavigationGroup(): ?string
+    {
+        return 'Operações';
+    }
+
     public static function getNavigationSort(): ?int
     {
-        return 5;
+        return 3;
     }
 
     public function getTitle(): string|\Illuminate\Contracts\Support\Htmlable

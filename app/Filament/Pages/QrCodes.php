@@ -23,12 +23,12 @@ class QrCodes extends Page
 
     public static function getNavigationGroup(): ?string
     {
-        return 'Administração';
+        return 'Operações';
     }
 
     public static function getNavigationSort(): ?int
     {
-        return 99;
+        return 11;
     }
 
     public function getTitle(): string|\Illuminate\Contracts\Support\Htmlable

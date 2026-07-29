@@ -17,6 +17,8 @@ use Filament\Tables\Table;
 
 class ServiceResource extends Resource
 {
+    protected static ?string $navigationGroup = 'Configurações';
+
     use HasRolePermissions;
     protected static ?string $model = Service::class;
 

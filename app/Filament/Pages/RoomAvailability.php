@@ -23,6 +23,7 @@ class RoomAvailability extends Page
     protected static ?string $title = 'Disponibilidade do Dia';
 
     protected static string|UnitEnum|null $navigationGroup = 'Operações';
+    protected static ?int $navigationSort = 2;
 
     protected string $view = 'filament.pages.room-availability';
 

@@ -12,7 +12,7 @@ class AquisicaoPage extends Page
 
     public static function getNavigationLabel(): string { return 'Análise de Aquisição'; }
     public function getTitle(): string { return 'Análise de Aquisição'; }
-    public static function getNavigationGroup(): ?string { return 'Sistema'; }
+    public static function getNavigationGroup(): ?string { return 'Sistema e Log'; }
     public static function getNavigationSort(): ?int    { return 91; }
 
     public array  $stats       = [];

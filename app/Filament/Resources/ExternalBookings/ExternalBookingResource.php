@@ -41,6 +41,7 @@ class ExternalBookingResource extends Resource
     protected static ?string $pluralModelLabel = 'Marcações Externas';
 
     protected static string|UnitEnum|null $navigationGroup = 'Operações';
+    protected static ?int $navigationSort = 8;
 
     protected static ?string $recordTitleAttribute = 'client_name';
 

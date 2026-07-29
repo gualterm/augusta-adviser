@@ -55,7 +55,7 @@ class ImportZappy extends Page
 
     public static function getNavigationSort(): ?int
     {
-        return 20;
+        return 6;
     }
 
     public function getTitle(): string|\Illuminate\Contracts\Support\Htmlable

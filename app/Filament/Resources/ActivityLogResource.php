@@ -28,7 +28,7 @@ class ActivityLogResource extends Resource
     // navigationIcon ($navigationIcon é BackedEnum|string|null no pai → usar método)
     // navigationGroup ($navigationGroup é UnitEnum|string|null no pai → usar método)
     public static function getNavigationIcon(): string  { return 'heroicon-o-clipboard-document-list'; }
-    public static function getNavigationGroup(): string { return 'Sistema'; }
+    public static function getNavigationGroup(): string { return 'Sistema e Log'; }
     public static function getNavigationSort(): ?int    { return 90; }
     public static function canCreate(): bool            { return false; }
     public static function canEdit($record): bool       { return false; }
