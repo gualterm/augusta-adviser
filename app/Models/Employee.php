@@ -15,6 +15,7 @@ class Employee extends Model
         'nif',
         'default_commission_percentage',
         'active',
+        'color',
         'preferred_workstation_id',
     ];
     // ─── Relationships ───────────────────────────────────────────────────────

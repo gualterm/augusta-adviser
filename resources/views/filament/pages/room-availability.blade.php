@@ -155,7 +155,7 @@
                             <span class="ra-slot-time">
                                 {{ \Illuminate\Support\Carbon::parse($appointment->appointment_time)->format('H:i') }}–{{ \Illuminate\Support\Carbon::parse($appointment->end_time)->format('H:i') }}
                             </span>
-                            {{ $appointment->employee?->name }} · {{ $appointment->client?->name }}
+                            <span style="color:{{ $appointment->employee?->color ?? '#6B7280' }};font-weight:600">{{ $appointment->employee?->name ?? '—' }}</span> · {{ $appointment->client?->name }}
                         </a>
                     @endforeach
                     <a href="{{ $workstation->createUrl }}" class="ra-add-link">+ Adicionar marcação</a>
@@ -185,7 +185,7 @@
                                 <span class="ra-slot-time">
                                     {{ \Illuminate\Support\Carbon::parse($appointment->appointment_time)->format('H:i') }}–{{ \Illuminate\Support\Carbon::parse($appointment->end_time)->format('H:i') }}
                                 </span>
-                                {{ $appointment->workstation?->name }} · {{ $appointment->employee?->name }} · {{ $appointment->client?->name }}
+                                {{ $appointment->workstation?->name }} · <span style="color:{{ $appointment->employee?->color ?? '#6B7280' }};font-weight:600">{{ $appointment->employee?->name ?? '—' }}</span> · {{ $appointment->client?->name }}
                             </a>
                         @endforeach
                     @endif

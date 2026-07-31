@@ -107,7 +107,7 @@
                             <span class="wc-slot-time">
                                 {{ \Illuminate\Support\Carbon::parse($appointment->appointment_time)->format('H:i') }}–{{ \Illuminate\Support\Carbon::parse($appointment->end_time)->format('H:i') }}
                             </span>
-                            {{ $appointment->employee?->name }} · {{ $appointment->client?->name }}<br>
+                            <span style="color:{{ $appointment->employee?->color ?? '#6B7280' }};font-weight:600">{{ $appointment->employee?->name ?? '—' }}</span> · {{ $appointment->client?->name }}<br>
                             <span style="opacity:.8;">{{ $appointment->workstation?->name }}</span>
                         </a>
                     @endforeach

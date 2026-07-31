@@ -25,9 +25,9 @@
 
     @forelse ($data as $prof)
     <div class="print-card bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
-        <div class="flex items-start justify-between px-6 py-4 bg-amber-50 dark:bg-amber-900/20 border-b border-amber-100 dark:border-amber-800">
+        <div class="flex items-start justify-between px-6 py-4 border-b" style="background:{{ $prof['color'] }}15;border-color:{{ $prof['color'] }}30;border-left:4px solid {{ $prof['color'] }};">
             <div>
-                <h3 class="text-lg font-bold text-gray-900 dark:text-white">{{ $prof['name'] }}</h3>
+                <h3 class="text-lg font-bold" style="color:{{ $prof['color'] }};">{{ $prof['name'] }}</h3>
                 <p class="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
                     {{ $prof['count'] }} {{ $prof['count'] === 1 ? 'marcação' : 'marcações' }} · confirmadas/concluídas
                 </p>

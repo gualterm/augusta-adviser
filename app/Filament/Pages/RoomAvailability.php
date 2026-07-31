@@ -245,7 +245,7 @@ class RoomAvailability extends Page
                 );
                 $employee->setAttribute(
                     'color',
-                    self::EMPLOYEE_COLORS[$index % count(self::EMPLOYEE_COLORS)]
+                    $employee->color
                 );
 
                 return $employee;
@@ -351,7 +351,7 @@ class RoomAvailability extends Page
 
                 return [
                     'name'     => $employee->name,
-                    'color'    => self::EMPLOYEE_COLORS[$index % count(self::EMPLOYEE_COLORS)],
+                    'color'    => $employee->color,
                     'dayStart' => $dayStart->format('H:i'),
                     'dayEnd'   => $dayEnd->format('H:i'),
                     'blocks'   => $blocks,
@@ -379,7 +379,7 @@ class RoomAvailability extends Page
 
         $result = [];
         foreach ($employees as $index => $employee) {
-            $color    = self::EMPLOYEE_COLORS[$index % count(self::EMPLOYEE_COLORS)];
+            $color    = $employee->color;
             $weekData = [];
 
             foreach ($days as $day) {

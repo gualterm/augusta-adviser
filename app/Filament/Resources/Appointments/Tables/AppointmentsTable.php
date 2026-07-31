@@ -61,6 +61,12 @@ class AppointmentsTable
                     ->label('Profissional')
                     ->searchable()
                     ->sortable()
+                    ->html()
+                    ->formatStateUsing(function ($state, $record) {
+                        if (!$state) return null;
+                        $color = $record->employee?->color ?? '#6B7280';
+                        return '<span style="color:' . $color . ';font-weight:600">' . e($state) . '</span>';
+                    })
                     ->placeholder('⚠ Sem profissional'),
                 TextColumn::make('workstation.name')
                     ->label('Posto')

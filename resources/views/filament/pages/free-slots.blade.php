@@ -61,7 +61,7 @@
                     @foreach($day['slots'] as $slot)
                         <a href="{{ $slot['createUrl'] }}" class="fs-slot">
                             <span class="fs-slot-time">{{ $slot['time'] }}</span>
-                            <span class="fs-slot-emps">{{ implode(', ', $slot['freeEmployees']) }}</span>
+                            <span class="fs-slot-emps">@foreach($slot['freeEmployees'] as $i => $emp)@if($i > 0)<span style="color:#9b8a7c">, </span>@endif<span style="color:{{ $emp['color'] }};font-weight:600">{{ $emp['name'] }}</span>@endforeach</span>
                             <span class="fs-slot-badge">{{ $slot['total'] }} livre{{ $slot['total'] != 1 ? 's' : '' }}</span>
                         </a>
                     @endforeach

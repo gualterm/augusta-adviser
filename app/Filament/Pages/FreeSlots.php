@@ -66,7 +66,7 @@ class FreeSlots extends Page
                     return true;
                 })->values();
                 if ($free->isNotEmpty()) {
-                    $slots[] = ['time'=>$s->format('H:i'),'freeEmployees'=>$free->pluck('name')->toArray(),'total'=>$free->count(),
+                    $slots[] = ['time'=>$s->format('H:i'),'freeEmployees'=>$free->map(fn($e) => ['name'=>$e->name,'color'=>$e->color ?? '#6B7280'])->toArray(),'total'=>$free->count(),
                         'createUrl'=>\App\Filament\Resources\Appointments\AppointmentResource::getUrl('create').'?'.http_build_query(['appointment_date'=>$date,'appointment_time'=>$s->format('H:i')])];
                 }
             }

@@ -63,6 +63,7 @@ class PagamentosDiarios extends Page
 
             $result[] = [
                 'name'             => $emp->name,
+                'color'            => $emp->color ?? '#6B7280',
                 'count'            => $appts->count(),
                 'total_value'      => $totalValue,
                 'total_commission' => $totalCommission,
