@@ -75,7 +75,6 @@ class EmployeeForm
                 ->description('Dias e horas em que este profissional está disponível. Dias não listados são considerados folga.')
                 ->schema([
                     Repeater::make('schedules')
-                        ->relationship('schedules')
                         ->label('')
                         ->schema([
                             Select::make('day_of_week')
@@ -89,7 +88,9 @@ class EmployeeForm
                                     6 => 'Sábado',
                                     0 => 'Domingo',
                                 ])
-                                ->required(),
+                                ->required()
+                                ->distinct()
+                                ->validationMessages(['distinct' => 'Este dia já foi adicionado.']),
                             TimePicker::make('start_time')
                                 ->label('Início')
                                 ->seconds(false)
