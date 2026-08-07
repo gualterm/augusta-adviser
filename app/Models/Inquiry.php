@@ -13,7 +13,10 @@ class Inquiry extends Model
         'subject',
         'message',
         'status',
+        'response',
+        'responded_at',
     ];
+    protected $casts = ['responded_at' => 'datetime'];
 
     public const SUBJECTS = [
         'marcacoes' => 'Marcações',
