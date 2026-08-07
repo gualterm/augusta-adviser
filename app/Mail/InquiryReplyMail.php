@@ -3,7 +3,6 @@ namespace App\Mail;
 use App\Models\Inquiry;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
-use Illuminate\Mail\Mailables\Address;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
@@ -18,7 +17,6 @@ class InquiryReplyMail extends Mailable
     {
         $subjectLabel = Inquiry::SUBJECTS[$this->inquiry->subject] ?? $this->inquiry->subject;
         return new Envelope(
-            from: new Address('info@augustaadviser.pt', 'Augusta Adviser'),
             subject: 'Re: ' . $subjectLabel,
         );
     }
