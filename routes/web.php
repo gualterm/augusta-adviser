@@ -10,6 +10,21 @@ Route::get('/', function () {
     return view('welcome', compact('businessHours'));
 });
 
+Route::get('/sitemap.xml', function () {
+    $urls = [
+        ['loc' => 'https://augustaadviser.pt/', 'priority' => '1.0', 'changefreq' => 'weekly'],
+        ['loc' => 'https://augustaadviser.pt/portal/login', 'priority' => '0.5', 'changefreq' => 'monthly'],
+        ['loc' => 'https://augustaadviser.pt/portal/registo', 'priority' => '0.4', 'changefreq' => 'monthly'],
+    ];
+    $xml  = '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
+    $xml .= '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . "\n";
+    foreach ($urls as $u) {
+        $xml .= "  <url>\n    <loc>{$u['loc']}</loc>\n    <changefreq>{$u['changefreq']}</changefreq>\n    <priority>{$u['priority']}</priority>\n    <lastmod>" . date('Y-m-d') . "</lastmod>\n  </url>\n";
+    }
+    $xml .= '</urlset>';
+    return response($xml, 200)->header('Content-Type', 'application/xml');
+});
+
 Route::get('/staff', function () {
     return view('staff');
 })->name('staff');

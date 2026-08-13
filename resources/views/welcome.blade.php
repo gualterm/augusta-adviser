@@ -3,6 +3,16 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- SEO v1.3 -->
+<meta name="description" content="Augusta Adviser — Consultoria de Imagem &amp; Estética em Vila do Conde. Marta Macedo especialista em Laser Díodo, HIFU, Microagulhamento, Pedicure e Unhas Japonesas. Marque a sua consulta online.">
+<link rel="canonical" href="https://augustaadviser.pt/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Augusta Adviser | Consultoria de Imagem &amp; Estética">
+<meta property="og:description" content="Consultoria de Imagem &amp; Estética em Vila do Conde. Marta Macedo especialista em Laser Díodo, HIFU, Microagulhamento, Pedicure e Unhas Japonesas.">
+<meta property="og:url" content="https://augustaadviser.pt/">
+<meta property="og:image" content="https://augustaadviser.pt/images/martahero.png">
+<meta property="og:locale" content="pt_PT">
+<meta property="og:site_name" content="Augusta Adviser">
 <title>Augusta Adviser | Consultoria de Imagem &amp; Estética</title>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -1150,6 +1160,52 @@ if (e.key === 'Escape') {
 closeLightbox();
 }
 });
+</script>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BeautySalon",
+  "name": "Augusta Adviser",
+  "description": "Consultoria de Imagem & Estética em Vila do Conde. Marta Macedo especialista em Laser Díodo, HIFU, Microagulhamento, Pedicure e Unhas Japonesas.",
+  "url": "https://augustaadviser.pt",
+  "logo": "https://augustaadviser.pt/images/logoaugusta-1a.png",
+  "image": ["https://augustaadviser.pt/images/martahero.png"],
+  "telephone": "+351966518238",
+  "email": "info@augustaadviser.pt",
+  "address": {
+    "@type": "PostalAddress",
+    "streetAddress": "Avenida Júlio Saúl Dias, 191",
+    "postalCode": "4480-673",
+    "addressLocality": "Vila do Conde",
+    "addressRegion": "Porto",
+    "addressCountry": "PT"
+  },
+  "sameAs": ["https://www.instagram.com/augusta.advisor"],
+  "priceRange": "€€",
+  "openingHoursSpecification": [
+    {
+      "@type": "OpeningHoursSpecification",
+      "dayOfWeek": ["Monday","Wednesday","Thursday","Friday"],
+      "opens": "09:00",
+      "closes": "19:00"
+    }
+  ],
+  "hasOfferCatalog": {
+    "@type": "OfferCatalog",
+    "name": "Serviços Augusta Adviser",
+    "itemListElement": [
+      {"@type": "Offer", "itemOffered": {"@type": "Service", "name": "Consultoria de Imagem"}},
+      {"@type": "Offer", "itemOffered": {"@type": "Service", "name": "Laser Díodo"}},
+      {"@type": "Offer", "itemOffered": {"@type": "Service", "name": "HIFU"}},
+      {"@type": "Offer", "itemOffered": {"@type": "Service", "name": "Microagulhamento"}},
+      {"@type": "Offer", "itemOffered": {"@type": "Service", "name": "Aparatologia Estética"}},
+      {"@type": "Offer", "itemOffered": {"@type": "Service", "name": "Pedicure"}},
+      {"@type": "Offer", "itemOffered": {"@type": "Service", "name": "Unhas Japonesas"}},
+      {"@type": "Offer", "itemOffered": {"@type": "Service", "name": "SPA & Bem-Estar"}}
+    ]
+  }
+}
 </script>
 </body>
 </html>

@@ -1,2 +1,8 @@
 User-agent: *
-Disallow:
+Allow: /
+Disallow: /admin/
+Disallow: /portal/dashboard
+Disallow: /portal/marcar
+Disallow: /portal/suggest-slot
+Disallow: /portal/available-slots
+Sitemap: https://augustaadviser.pt/sitemap.xml
