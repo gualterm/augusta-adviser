@@ -90,3 +90,5 @@ Route::get('/admin/ambiente', function () {
 });
 
 Route::middleware(['auth'])->get('/pagamentos-diarios/print', [\App\Http\Controllers\PagamentosDiariosController::class, 'print'])->name('pagamentos-diarios.print');
+
+Route::get('/politica-de-cookies', fn() => view('politica-de-cookies'))->name('politica-de-cookies');

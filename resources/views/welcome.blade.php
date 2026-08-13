@@ -1209,5 +1209,6 @@ closeLightbox();
 }
 </script>
 @endverbatim
+@include('partials.cookie-consent')
 </body>
 </html>
