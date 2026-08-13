@@ -66,7 +66,7 @@ class SyncOdisseiasBookings extends Command
         $confirmadasAuto = 0;
         $ligadasAJaExistentes = 0;
         $sinalizadasConflito = 0;
-        $sinalizadasAnulada = 0;
+        $canceladasOdisseias = 0;
         $erros = [];
 
         foreach ($rows as $row) {
@@ -134,12 +134,31 @@ class SyncOdisseiasBookings extends Command
                 continue;
             }
 
-            if ($estado === 'ANULADA' && $existing->appointment_id && $existing->appointment?->status !== 'completed') {
-                $existing->update([
-                    'has_conflict' => true,
-                    'conflict_note' => 'Anulada na Odisseias mas já está na agenda — cancelar/rever manualmente.',
-                ]);
-                $sinalizadasAnulada++;
+                        if ($estado === 'ANULADA' && $existing->appointment_id && $existing->appointment?->status !== 'completed') {
+                $canceladasOdisseias++;
+                if ($commit) {
+                    $appt = $existing->appointment;
+                    if ($appt && !in_array($appt->status, ['cancelled', 'completed'])) {
+                        $appt->update(['status' => 'cancelled']);
+                        $existing->update([
+                            'has_conflict'            => false,
+                            'conflict_note'           => null,
+                            'conflict_appointment_id' => null,
+                        ]);
+                        ActivityLog::create([
+                            'event_type'   => 'odisseias.cancelled',
+                            'source'       => 'external',
+                            'actor_name'   => 'Sync Odisseias',
+                            'subject_type' => 'appointment',
+                            'subject_id'   => $appt->id,
+                            'description'  => 'Odisseias \u2192 Cancelada: ' . $existing->client_name . ' \u2014 ' . $existing->product . ' em ' .
+                                              Carbon::parse($existing->appointment_date)->format('d/m/Y') . ' ' .
+                                              substr($existing->appointment_time, 0, 5) .
+                                              ' (reserva ' . $existing->reserva_number . ')',
+                            'created_at'   => now(),
+                        ]);
+                    }
+                }
                 continue;
             }
 
@@ -235,11 +254,11 @@ class SyncOdisseiasBookings extends Command
         $this->line("  Confirmadas automaticamente para a agenda: {$confirmadasAuto}");
         $this->line("  Ligadas a marcações já existentes: {$ligadasAJaExistentes}");
         $this->line("  Sinalizadas com conflito de horário: {$sinalizadasConflito}");
-        $this->line("  Sinalizadas: anuladas na Odisseias já na agenda: {$sinalizadasAnulada}");
+        $this->line("  Canceladas automaticamente (anuladas na Odisseias): {$canceladasOdisseias}");
 
         // Log resumo do sync (sempre que corre em modo --commit)
         if ($commit) {
-            $temMovimento = $novas + $atualizadas + $confirmadasAuto + $sinalizadasConflito + $sinalizadasAnulada > 0;
+            $temMovimento = $novas + $atualizadas + $confirmadasAuto + $sinalizadasConflito + $canceladasOdisseias > 0;
             ActivityLog::create([
                 'event_type'   => 'odisseias.sync',
                 'source'       => 'system',
