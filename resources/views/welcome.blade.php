@@ -1162,6 +1162,7 @@ closeLightbox();
 });
 </script>
 
+@verbatim
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -1207,5 +1208,6 @@ closeLightbox();
   }
 }
 </script>
+@endverbatim
 </body>
 </html>
