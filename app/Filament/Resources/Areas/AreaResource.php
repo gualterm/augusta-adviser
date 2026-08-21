@@ -8,6 +8,7 @@ use App\Filament\Resources\Areas\Pages\EditArea;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Tables\Table;
 use Filament\Tables\Columns\TextColumn;
@@ -30,6 +31,10 @@ class AreaResource extends Resource
                 ->label('Nome')
                 ->required()
                 ->maxLength(100),
+            Textarea::make('marketing_description')
+                ->label('Descritivo de Marketing')
+                ->helperText('Texto apelativo para o site público e campanhas — descreve a área para clientes, não para uso interno.')
+                ->rows(3),
             Select::make('workstation_type')
                 ->label('Tipo de posto')
                 ->options([

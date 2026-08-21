@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Area extends Model
 {
-    protected $fillable = ['name', 'workstation_type', 'max_concurrent'];
+    protected $fillable = ['name', 'marketing_description', 'workstation_type', 'max_concurrent'];
 
     protected $casts = ['max_concurrent' => 'integer'];
 

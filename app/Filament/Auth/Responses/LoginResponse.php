@@ -9,6 +9,10 @@ class LoginResponse implements Responsable
 {
     public function toResponse($request): RedirectResponse | Redirector
     {
-        return redirect('/admin/ambiente');
+        // Em PROD mostra o seletor de ambiente; em qualquer outro dominio
+        // (DEV/formacao) ja nao ha nada para escolher, vai direto ao dashboard.
+        $isProd = str_contains(config('app.url'), 'augustaadviser.pt');
+
+        return redirect($isProd ? '/admin/ambiente' : '/admin');
     }
 }

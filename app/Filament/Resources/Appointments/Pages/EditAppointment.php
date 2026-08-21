@@ -1,9 +1,11 @@
 <?php
 namespace App\Filament\Resources\Appointments\Pages;
 use App\Filament\Resources\Appointments\AppointmentResource;
+use App\Models\Appointment;
 use App\Models\Service;
 use App\Services\AppointmentConflictService;
 use Carbon\Carbon;
+use Filament\Actions\Action;
 use Filament\Actions\DeleteAction;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\EditRecord;
@@ -11,12 +13,60 @@ use Filament\Support\Exceptions\Halt;
 class EditAppointment extends EditRecord
 {
     protected static string $resource = AppointmentResource::class;
+
     protected function getHeaderActions(): array
     {
+        $record = $this->getRecord();
+
+        $previousId = Appointment::where(function ($q) use ($record) {
+                $q->where('appointment_date', '<', $record->appointment_date)
+                  ->orWhere(function ($q2) use ($record) {
+                      $q2->where('appointment_date', $record->appointment_date)
+                         ->where('appointment_time', '<', $record->appointment_time);
+                  })
+                  ->orWhere(function ($q2) use ($record) {
+                      $q2->where('appointment_date', $record->appointment_date)
+                         ->where('appointment_time', $record->appointment_time)
+                         ->where('id', '<', $record->id);
+                  });
+            })
+            ->orderByDesc('appointment_date')
+            ->orderByDesc('appointment_time')
+            ->orderByDesc('id')
+            ->value('id');
+
+        $nextId = Appointment::where(function ($q) use ($record) {
+                $q->where('appointment_date', '>', $record->appointment_date)
+                  ->orWhere(function ($q2) use ($record) {
+                      $q2->where('appointment_date', $record->appointment_date)
+                         ->where('appointment_time', '>', $record->appointment_time);
+                  })
+                  ->orWhere(function ($q2) use ($record) {
+                      $q2->where('appointment_date', $record->appointment_date)
+                         ->where('appointment_time', $record->appointment_time)
+                         ->where('id', '>', $record->id);
+                  });
+            })
+            ->orderBy('appointment_date')
+            ->orderBy('appointment_time')
+            ->orderBy('id')
+            ->value('id');
+
         return [
+            Action::make('previousAppointment')
+                ->label('◀ Anterior')
+                ->color('gray')
+                ->visible((bool) $previousId)
+                ->url($previousId ? AppointmentResource::getUrl('edit', ['record' => $previousId]) : null),
+            Action::make('nextAppointment')
+                ->label('Seguinte ▶')
+                ->color('gray')
+                ->visible((bool) $nextId)
+                ->url($nextId ? AppointmentResource::getUrl('edit', ['record' => $nextId]) : null),
             DeleteAction::make(),
         ];
     }
+
     protected function mutateFormDataBeforeSave(array $data): array
     {
         $force    = (bool) ($data['force_booking'] ?? false);
@@ -35,7 +85,6 @@ class EditAppointment extends EditRecord
         if (($data['status'] ?? '') === 'cancelled') {
             return $data;
         }
-
         if ($force) {
             if (AppointmentConflictService::workstationAtCapacity(
                 $data['workstation_id'],

@@ -56,6 +56,12 @@ class ServiceForm
                             ->required(),
                         Textarea::make('description')
                             ->label('Descrição')
+                            ->helperText('Descrição interna/funcional do serviço, para uso da equipa.')
+                            ->rows(4)
+                            ->columnSpanFull(),
+                        Textarea::make('marketing_description')
+                            ->label('Descritivo de Marketing')
+                            ->helperText('Texto apelativo para o site público, campanhas e Odisseias — diferente da descrição interna acima.')
                             ->rows(4)
                             ->columnSpanFull(),
                         Toggle::make('active')
